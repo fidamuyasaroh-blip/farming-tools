@@ -1,13 +1,9 @@
 <?php
-// Hapus session_start() jika ingin full menggunakan Cookie, 
-// atau biarkan tapi jangan jadikan patokan utama.
+// Menggunakan koneksi dan mengecek login via Cookie agar stabil di Vercel
 include 'koneksi.php';
 
-// PERBAIKAN UTAMA: Cek menggunakan Cookie, bukan Session
 if (!isset($_COOKIE['username'])) {
-    // Simpan info redirect di cookie juga agar awet
     setcookie("redirect_after_login", "daftar_alat.php", time() + 3600, "/");
-    
     echo "<script>
         alert('Maaf, Anda harus login terlebih dahulu untuk mengakses katalog!');
         window.location.href = 'login.php';
@@ -15,10 +11,10 @@ if (!isset($_COOKIE['username'])) {
     exit();
 }
 
-// Ambil data dari Cookie untuk ditampilkan di Navbar
 $username = $_COOKIE['username'];
 $role = $_COOKIE['role'] ?? 'user';
 
+// Ambil data alat dari database
 $query = "SELECT * FROM alat";
 $result = mysqli_query($koneksi, $query);
 
@@ -34,12 +30,11 @@ if (!$result) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Katalog Alat - TERRALEASE</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Image of agricultural tools catalog layout -->
     <style>
         body { background-color: #f8f9fa; padding-top: 100px; font-family: 'Plus Jakarta Sans', sans-serif; }
-        .card { transition: transform 0.2s; border: none; border-radius: 15px; overflow: hidden; }
+        .card { transition: transform 0.2s; border: none; border-radius: 15px; overflow: hidden; height: 100%; }
         .card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; }
-        .card-img-top { height: 200px; object-fit: cover; }
+        .card-img-top { height: 200px; object-fit: cover; background-color: #eee; }
         .text-description {
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -54,10 +49,10 @@ if (!$result) {
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg navbar-dark shadow-sm fixed-top" style="background-color: #2e7d32;">
         <div class="container">
-            <a class="navbar-brand fw-bold fs-3" href="/index.html">TERRALEASE</a>
+            <a class="navbar-brand fw-bold fs-3" href="../index.html">TERRALEASE</a>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item"><a class="nav-link text-white fw-semibold px-3" href="/index.html">Beranda</a></li>
+                    <li class="nav-item"><a class="nav-link text-white fw-semibold px-3" href="../index.html">Beranda</a></li>
                     <li class="nav-item">
                         <span class="nav-link text-light me-2">Halo, <strong><?= htmlspecialchars($username); ?></strong></span>
                     </li>
@@ -70,7 +65,6 @@ if (!$result) {
     </nav>
 
     <div class="container mt-3">
-        <!-- Cek Role dari Cookie -->
         <?php if ($role == 'admin'): ?>
             <a href="admin_dashboard.php" class="btn btn-outline-success btn-sm px-3">← Dashboard Admin</a>
         <?php else: ?>
@@ -82,15 +76,20 @@ if (!$result) {
         <div class="text-center mb-5 mt-4">
             <h2 class="fw-bold">Katalog Alat Pertanian</h2>
             <p class="text-muted">Pilih alat modern untuk hasil tani yang maksimal</p>
+            <hr style="width: 60px; border: 2px solid #2e7d32; margin: auto;">
         </div>
 
         <div class="row g-4">
             <?php if (mysqli_num_rows($result) > 0) : ?>
                 <?php while($row = mysqli_fetch_assoc($result)) : ?>
                 <div class="col-md-6 col-lg-4">
-                    <article class="card h-100 shadow-sm">
-                        <!-- Pastikan folder img ada di lokasi yang benar di Vercel -->
-                        <img src="img/<?= htmlspecialchars($row['gambar']); ?>" class="card-img-top" alt="<?= htmlspecialchars($row['nama_alat']); ?>">
+                    <div class="card shadow-sm">
+                        <!-- PERBAIKAN PATH GAMBAR: Menuju folder img yang selevel dengan file ini -->
+                        <img src="img/<?= htmlspecialchars($row['gambar']); ?>" 
+                             class="card-img-top" 
+                             alt="<?= htmlspecialchars($row['nama_alat']); ?>"
+                             onerror="this.onerror=null;this.src='https://placehold.co/600x400?text=Gambar+Tidak+Ada';">
+                        
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title fw-bold mb-1 text-dark"><?= htmlspecialchars($row['nama_alat']); ?></h5>
                             <p class="card-text text-muted small text-description mb-3">
@@ -106,7 +105,7 @@ if (!$result) {
                                 <a href="detail.php?id=<?= $row['id']; ?>" class="btn btn-success w-100 fw-bold py-2">Lihat Detail</a>
                             </div>
                         </div>
-                    </article>
+                    </div>
                 </div>
                 <?php endwhile; ?>
             <?php else : ?>
@@ -116,5 +115,7 @@ if (!$result) {
             <?php endif; ?>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
