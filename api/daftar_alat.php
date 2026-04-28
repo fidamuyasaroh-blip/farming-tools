@@ -86,11 +86,11 @@ if (!$result) {
                     // --- LOGIKA PENGAMAN (FALLBACK) ---
                     // Jika di database nama filenya masih salah, kode ini akan memperbaikinya otomatis saat ditampilkan
                     $nama_file = $row['gambar'];
-                    if ($row['nama_alat'] == 'Seeder') $nama_file = 'seeder.jpg';
-                    if ($row['nama_alat'] == 'Fertilizer Spreader') $nama_file = 'Fertilizer-Spreader.jpg';
-                    if ($row['nama_alat'] == 'Rotavator') $nama_file = 'Rotavator_1_63037605e0.jpg';
-                    if ($row['nama_alat'] == 'Cultivator') $nama_file = 'Cultivator.jpg';
-                    if ($row['nama_alat'] == 'Mesin Modern') $nama_file = 'Mesin-pertanian-modern.jpg'; // Hapus ../img/ di sini
+                    if ($row['nama_alat'] == 'Seeder') $nama_file = 'img/seeder.jpg';
+                    if ($row['nama_alat'] == 'Fertilizer Spreader') $nama_file = 'img/Fertilizer-Spreader.jpg';
+                    if ($row['nama_alat'] == 'Rotavator') $nama_file = 'img/Rotavator_1_63037605e0.jpg';
+                    if ($row['nama_alat'] == 'Cultivator') $nama_file = 'img/Cultivator.jpg';
+                    if ($row['nama_alat'] == 'Mesin Modern') $nama_file = 'img/Mesin-pertanian-modern.jpg'; // Hapus ../img/ di sini
                     // ----------------------------------
                 ?>
                 <div class="col-md-6 col-lg-4">
