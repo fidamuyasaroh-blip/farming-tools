@@ -81,11 +81,22 @@ if (!$result) {
 
         <div class="row g-4">
             <?php if (mysqli_num_rows($result) > 0) : ?>
-                <?php while($row = mysqli_fetch_assoc($result)) : ?>
+                <?php while($row = mysqli_fetch_assoc($result)) : 
+                    
+                    // --- LOGIKA PENGAMAN (FALLBACK) ---
+                    // Jika di database nama filenya masih salah, kode ini akan memperbaikinya otomatis saat ditampilkan
+                    $nama_file = $row['gambar'];
+                    if ($row['nama_alat'] == 'Seeder') $nama_file = 'seeder.jpg';
+                    if ($row['nama_alat'] == 'Fertilizer Spreader') $nama_file = 'Fertilizer-Spreader.jpg';
+                    if ($row['nama_alat'] == 'Rotavator') $nama_file = 'Rotavator_1_63037605e0.jpg';
+                    if ($row['nama_alat'] == 'Cultivator') $nama_file = 'Cultivator.jpg';
+                    if ($row['nama_alat'] == 'Mesin Modern') $nama_file = 'Mesin-pertanian-modern.jpg';
+                    // ----------------------------------
+                ?>
                 <div class="col-md-6 col-lg-4">
                     <div class="card shadow-sm">
-                        <!-- PERBAIKAN PATH GAMBAR: Menuju folder img yang selevel dengan file ini -->
-                        <img src="img/<?= htmlspecialchars($row['gambar']); ?>" 
+                        <!-- PATH GAMBAR: Langsung menunjuk ke folder img/ dan menggunakan variabel $nama_file -->
+                        <img src="img/<?= htmlspecialchars($nama_file); ?>" 
                              class="card-img-top" 
                              alt="<?= htmlspecialchars($row['nama_alat']); ?>"
                              onerror="this.onerror=null;this.src='https://placehold.co/600x400?text=Gambar+Tidak+Ada';">
