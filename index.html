@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TERRALEASE - Modernisasi Pertanian</title>
+    <!-- Hubungkan ke Bootstrap agar tampilan langsung rapi -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- PERBAIKAN: Pastikan path style.css benar (sesuaikan jika di dalam folder css/) -->
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-success" href="#">TERRALEASE</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link active" href="index.php">Beranda</a></li>
+                    <li class="nav-item"><a class="nav-link" href="katalog.php">Katalog</a></li>
+                    <!-- Jalur ke register di dalam folder api -->
+                    <li class="nav-item"><a class="btn btn-warning rounded-pill ms-lg-3" href="api/register.php">Daftar</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="py-5 bg-white text-center">
+        <div class="container py-5">
+            <h1 class="display-4 fw-bold">Modernisasi Pertanian Anda</h1>
+            <p class="lead text-muted">Sewa alat pertanian canggih untuk hasil panen maksimal.</p>
+            <!-- PERBAIKAN: Jalur ke login di dalam folder api -->
+            <a href="api/login.php" class="btn btn-success btn-lg px-5 mt-3">Login Sekarang</a>
+        </div>
+    </header>
+
+    <!-- Kenapa Memilih Section -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <h2 class="text-center fw-bold text-success mb-5">Kenapa Memilih TERRALEASE?</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm p-4 text-center">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2318/2318311.png" width="80" class="mx-auto mb-3" alt="Alat Modern">
+                        <h4 class="fw-bold">Alat Modern</h4>
+                        <p class="text-muted">Traktor hingga sensor pertanian tersedia dengan teknologi terbaru untuk efisiensi lahan.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm p-4 text-center">
+                        <img src="https://cdn-icons-png.flaticon.com/512/3222/3222672.png" width="80" class="mx-auto mb-3" alt="Berbasis Data">
+                        <h4 class="fw-bold">Berbasis Data</h4>
+                        <p class="text-muted">Pantau statistik luas panen dan harga komoditas secara real-time lewat menu Statistik.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm p-4 text-center">
+                        <img src="https://cdn-icons-png.flaticon.com/512/1681/1681461.png" width="80" class="mx-auto mb-3" alt="Mudah & Cepat">
+                        <h4 class="fw-bold">Mudah & Cepat</h4>
+                        <p class="text-muted">Proses pendaftaran instan. Pilih alat, tentukan durasi, dan langsung mulai mengolah lahan.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-4 bg-dark text-white text-center">
+        <p class="mb-0">&copy; 2026 TERRALEASE. UTS D-3 Teknik Informatika UNS.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
