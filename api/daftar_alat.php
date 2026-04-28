@@ -90,17 +90,16 @@ if (!$result) {
                     if ($row['nama_alat'] == 'Fertilizer Spreader') $nama_file = 'Fertilizer-Spreader.jpg';
                     if ($row['nama_alat'] == 'Rotavator') $nama_file = 'Rotavator_1_63037605e0.jpg';
                     if ($row['nama_alat'] == 'Cultivator') $nama_file = 'Cultivator.jpg';
-                    if ($row['nama_alat'] == 'Mesin Modern') $nama_file = 'Mesin-pertanian-modern.jpg';
+                    if ($row['nama_alat'] == 'Mesin Modern') $nama_file = 'Mesin-pertanian-modern.jpg'; // Hapus ../img/ di sini
                     // ----------------------------------
                 ?>
                 <div class="col-md-6 col-lg-4">
                     <div class="card shadow-sm">
-                        <!-- PATH GAMBAR: Langsung menunjuk ke folder img/ dan menggunakan variabel $nama_file -->
+                        <!-- PATH GAMBAR: Keluar dari api/ lalu masuk ke img/ -->
                         <img src="../img/<?= htmlspecialchars($nama_file); ?>" 
-                             class="card-img-top" 
-                             alt="<?= htmlspecialchars($row['nama_alat']); ?>"
-                             onerror="this.onerror=null;this.src='https://placehold.co/600x400?text=Gambar+Tidak+Ada';">
-                        
+                            class="card-img-top" 
+                            alt="<?= htmlspecialchars($row['nama_alat']); ?>"
+                            onerror="this.onerror=null;this.src='https://placehold.co/600x400?text=Gambar+Tidak+Ada';">
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title fw-bold mb-1 text-dark"><?= htmlspecialchars($row['nama_alat']); ?></h5>
                             <p class="card-text text-muted small text-description mb-3">
