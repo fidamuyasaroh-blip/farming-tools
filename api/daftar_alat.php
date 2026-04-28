@@ -90,7 +90,7 @@ if (!$result) {
                     if ($row['nama_alat'] == 'Fertilizer Spreader') $nama_file = 'Fertilizer-Spreader.jpg';
                     if ($row['nama_alat'] == 'Rotavator') $nama_file = 'Rotavator_1_63037605e0.jpg';
                     if ($row['nama_alat'] == 'Cultivator') $nama_file = 'Cultivator.jpg';
-                    if ($row['nama_alat'] == 'Mesin Modern') $nama_file = 'Mesin-pertanian-modern.jpg';
+                    if ($row['nama_alat'] == 'Mesin Modern') $nama_file = '../img/Mesin-pertanian-modern.jpg';
                     // ----------------------------------
                 ?>
                 <div class="col-md-6 col-lg-4">
