@@ -1,17 +1,20 @@
 <?php
-session_start();
+// Ganti session_start() dengan pengecekan Cookie
 include 'koneksi.php';
 
-if (!isset($_SESSION['username'])) {
+// Cek apakah cookie username ada
+if (!isset($_COOKIE['username'])) {
+    // Jika tidak ada cookie, berarti belum login, lempar ke login.php
     header("Location: /api/login.php");
     exit();
 }
 
-$username = $_SESSION['username'];
+// Ambil data dari Cookie (bukan dari Session)
+$username = $_COOKIE['username'];
 
 // Total peminjaman
 $q_total_pinjam = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM peminjaman WHERE username='$username'");
-$total_pinjam = mysqli_fetch_assoc($q_total_pinjam)['total'];
+$total_pinjam = mysqli_fetch_assoc($q_total_pinjam)['total'] ?? 0;
 
 // Total pengeluaran
 $q_total = mysqli_query($koneksi, "SELECT SUM(total_bayar) as total FROM peminjaman WHERE username='$username'");
