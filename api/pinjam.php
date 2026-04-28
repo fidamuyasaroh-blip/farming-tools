@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'koneksi.php'; 
+include $_SERVER['DOCUMENT_ROOT'] . '/api/koneksi.php';
 
 $id_alat = isset($_GET['id']) ? $_GET['id'] : 0;
 
@@ -30,8 +30,7 @@ if (!$data) {
     <h2 class="fw-bold mb-1">Konfirmasi Sewa</h2>
     <p class="text-muted mb-4">Anda akan menyewa: <span class="badge bg-success fs-6"><?= $data['nama_alat'] ?></span></p>
 
-    <form action="pembayaran.php" method="GET">
-        <!-- Kirim ID alat ke halaman pembayaran nanti -->
+    <form action="/api/pembayaran.php" method="GET">
         <input type="hidden" name="id" value="<?= $data['id'] ?>">
 
         <div class="mb-3">
@@ -42,7 +41,7 @@ if (!$data) {
 
         <div class="d-grid gap-2 mt-4">
             <button type="submit" class="btn btn-success btn-lg fw-bold py-3">Lanjut ke Pembayaran</button>
-            <a href="api/detail.php?id=<?= $data['id'] ?>" class="btn btn-warning btn-lg fw-bold text-white py-2">Batal</a>
+            <a href="/api/detail.php?id=<?= $data['id'] ?>" class="btn btn-warning btn-lg fw-bold text-white py-2">Batal</a>
         </div>
     </form>
 </div>
