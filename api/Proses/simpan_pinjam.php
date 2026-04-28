@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once __DIR__ . '../koneksi.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/api/koneksi.php';
 
 $id_alat  = $_POST['id_alat'] ?? 0;
 $durasi   = $_POST['durasi'] ?? 1;
@@ -19,11 +19,11 @@ $simpan = "INSERT INTO peminjaman (username, nama_alat, durasi, total_bayar, met
 mysqli_query($koneksi, $simpan);
 
 if ($metode == 'BCA') {
-    header("Location: ../instruksi_bca.php?alat=$nama_alat&durasi=$durasi&total=$total&metode=$metode");
+    header("Location: /api/instruksi_bca.php?alat=$nama_alat&durasi=$durasi&total=$total&metode=$metode");
 } elseif ($metode == 'GOPAY' || $metode == 'DANA') {
-    header("Location: ../instruksi_gopay.php?alat=$nama_alat&durasi=$durasi&total=$total&metode=$metode");
+    header("Location: /api/instruksi_gopay.php?alat=$nama_alat&durasi=$durasi&total=$total&metode=$metode");
 } else {
-    header("Location: daftar_alat.php");
+    header("Location: /api/daftar_alat.php");
 }
 exit();
 ?>
