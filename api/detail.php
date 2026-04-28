@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'koneksi.php'; // ← ganti dari mysqli_connect
+include $_SERVER['DOCUMENT_ROOT'] . '/api/koneksi.php';
 
 $id = isset($_GET['id']) ? $_GET['id'] : 0;
 
@@ -8,7 +8,7 @@ $query = mysqli_query($koneksi, "SELECT * FROM alat WHERE id = '$id'");
 $data = mysqli_fetch_assoc($query);
 
 if (!$data) {
-    echo "<script>alert('Alat tidak ditemukan!'); window.location.href='daftar_alat.php';</script>";
+    echo "<script>alert('Alat tidak ditemukan!'); window.location.href='/api/daftar_alat.php';</script>";
     exit();
 }
 
@@ -36,14 +36,12 @@ $deskripsi = $data['deskripsi'];
 <body class="p-4 p-md-5">
 
     <div class="container">
-        <!-- Tombol Kembali -->
-        <a href="api/daftar_alat.php" class="btn btn-success mb-4 shadow-sm" style="border-radius: 50px; padding: 10px 25px;">
+        <a href="/api/daftar_alat.php" class="btn btn-success mb-4 shadow-sm" style="border-radius: 50px; padding: 10px 25px;">
             ← Kembali ke Katalog
         </a>
 
         <div class="card detail-card shadow-lg">
             <div class="row g-0">
-                <!-- Bagian Gambar -->
                 <div class="col-md-6 img-container p-4">
                     <?php if($gambar && file_exists('img/'.$gambar)): ?>
                         <img src="img/<?= $gambar ?>" class="img-fluid" alt="<?= $nama ?>">
@@ -55,13 +53,11 @@ $deskripsi = $data['deskripsi'];
                     <?php endif; ?>
                 </div>
 
-                <!-- Bagian Info Detail -->
                 <div class="col-md-6 p-4 p-lg-5 bg-white">
                     <h1 class="fw-bold mb-3"><?= $nama ?></h1>
                     
                     <div class="mb-4">
                         <h4 class="text-secondary fw-semibold">Deskripsi Produk</h4>
-                        <!-- Menampilkan deskripsi asli dari database -->
                         <p class="text-muted" style="line-height: 1.8;">
                             <?= nl2br($deskripsi); ?>
                         </p>
@@ -81,10 +77,8 @@ $deskripsi = $data['deskripsi'];
                         </h2>
                     </div>
 
-                   <!-- Ganti tombol Pinjam Sekarang: -->
-
                     <?php if ($stok > 0): ?>
-                        <a href="api/pinjam.php?id=<?= $id ?>" class="btn btn-success btn-lg w-100 fw-bold shadow-sm py-3" style="border-radius: 12px; background-color: #2e7d32;">
+                        <a href="/api/pinjam.php?id=<?= $id ?>" class="btn btn-success btn-lg w-100 fw-bold shadow-sm py-3" style="border-radius: 12px; background-color: #2e7d32;">
                             Pinjam Sekarang
                         </a>
                     <?php else: ?>
