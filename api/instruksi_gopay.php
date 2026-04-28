@@ -1,16 +1,43 @@
 <?php
-session_start();
+include 'koneksi.php';
 
-// 1. Ambil data dari URL dengan pengamanan (Null Coalescing Operator)
-// Jika data tidak ada di URL, kita kasih nilai default agar tidak error 'Undefined Index'
-$alat   = $_GET['alat'] ?? 'Alat';
-$durasi = $_GET['durasi'] ?? 0;
-$total  = $_GET['total'] ?? 0;
-$metode = $_GET['metode'] ?? 'E-Wallet';
+// Proteksi Halaman Admin
+if (!isset($_COOKIE['role']) || $_COOKIE['role'] !== "admin") {
+    header("Location: login.php");
+    exit();
+}
 
-// 2. Tentukan warna berdasarkan metode
-$bg_color = ($metode == 'DANA') ? '#008ced' : '#00aa13';
+// Logika Tambah Data
+if (isset($_POST['tambah'])) {
+    $nama      = mysqli_real_escape_string($koneksi, $_POST['nama_alat']);
+    $harga     = $_POST['harga'];
+    $stok      = $_POST['stok'];
+    $deskripsi = mysqli_real_escape_string($koneksi, $_POST['deskripsi']);
+    
+    $nama_gambar   = $_FILES['gambar']['name'];
+    $tmp_name      = $_FILES['gambar']['tmp_name'];
+    $lokasi_simpan = 'img/' . $nama_gambar;
+
+    if (!is_dir('img')) { mkdir('img', 0777, true); }
+
+    if (move_uploaded_file($tmp_name, $lokasi_simpan)) {
+        $query = "INSERT INTO alat (nama_alat, harga, stok, deskripsi, gambar) 
+                  VALUES ('$nama', '$harga', '$stok', '$deskripsi', '$nama_gambar')";
+        mysqli_query($koneksi, $query);
+        header("Location: kelola_alat.php");
+        exit();
+    }
+}
+
+// Logika Hapus Data
+if (isset($_GET['hapus'])) {
+    $id = $_GET['hapus'];
+    mysqli_query($koneksi, "DELETE FROM alat WHERE id_alat='$id'");
+    header("Location: kelola_alat.php");
+    exit();
+}
 ?>
+<!-- Konten HTML Kelola Alat kamu di sini -->
 <!DOCTYPE html>
 <html lang="id">
 <head>

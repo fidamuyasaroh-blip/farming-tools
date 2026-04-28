@@ -1,16 +1,15 @@
 <?php
 include 'koneksi.php';
 
-// Proteksi Admin via Cookie
-$role = $_COOKIE['role'] ?? null;
-if ($role !== "admin") {
+// Proteksi Halaman: Cek apakah cookie role ada dan bernilai admin
+if (!isset($_COOKIE['role']) || $_COOKIE['role'] !== "admin") {
     header("Location: login.php");
     exit();
 }
 
-// Ambil data semua user
 $query = mysqli_query($koneksi, "SELECT * FROM users ORDER BY role ASC");
 ?>
+<!-- Konten HTML Kelola User kamu di sini -->
 <!DOCTYPE html>
 <html lang="id">
 <head>

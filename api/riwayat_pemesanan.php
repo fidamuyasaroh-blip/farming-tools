@@ -1,15 +1,15 @@
 <?php
 include 'koneksi.php';
 
-// Proteksi admin via Cookie
-$role = $_COOKIE['role'] ?? null;
-if ($role !== "admin") {
+// Proteksi Halaman Admin
+if (!isset($_COOKIE['role']) || $_COOKIE['role'] !== "admin") {
     header("Location: login.php");
     exit();
 }
 
 $query_riwayat = mysqli_query($koneksi, "SELECT * FROM peminjaman ORDER BY tanggal DESC");
 ?>
+<!-- Konten HTML Riwayat Pemesanan kamu di sini -->
 <!DOCTYPE html>
 <html lang="id">
 <head>
