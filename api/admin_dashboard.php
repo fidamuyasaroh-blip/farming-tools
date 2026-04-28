@@ -1,9 +1,9 @@
 <?php
-// Gunakan pengecekan yang lebih fleksibel untuk Cookie di Vercel
+// Menggunakan Cookie untuk validasi login agar stabil di Vercel
 $role = $_COOKIE['role'] ?? null;
 $username = $_COOKIE['username'] ?? 'Admin';
 
-// Jika role tidak ada ATAU bukan admin, tendang ke login
+// Jika role bukan admin, arahkan kembali ke login
 if (!$role || $role !== "admin") {
     header("Location: login.php");
     exit();
@@ -21,35 +21,12 @@ include 'koneksi.php';
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
-        
         body { background: #f4f6f9; font-family: 'Plus Jakarta Sans', sans-serif; }
         .navbar { background-color: #1a1d20; }
-        .card-fitur { 
-            border: none; 
-            border-radius: 20px; 
-            transition: all 0.3s ease; 
-            background: #ffffff;
-        }
-        .card-fitur:hover { 
-            transform: translateY(-10px); 
-            box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important; 
-        }
-        .btn-custom { 
-            border-radius: 12px; 
-            padding: 10px 20px; 
-            font-weight: 600;
-            width: 100%;
-        }
-        .icon-box {
-            width: 60px;
-            height: 60px;
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-            font-size: 1.5rem;
-        }
+        .card-fitur { border: none; border-radius: 20px; transition: all 0.3s ease; background: #ffffff; }
+        .card-fitur:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important; }
+        .btn-custom { border-radius: 12px; padding: 10px 20px; font-weight: 600; width: 100%; }
+        .icon-box { width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 1.5rem; }
     </style>
 </head>
 <body>
@@ -89,7 +66,6 @@ include 'koneksi.php';
         </div>
 
         <div class="row g-4">
-            <!-- Kelola User -->
             <div class="col-md-4">
                 <div class="card card-fitur p-4 shadow-sm h-100">
                     <div class="icon-box bg-success bg-opacity-10 text-success">
@@ -103,7 +79,6 @@ include 'koneksi.php';
                 </div>
             </div>
 
-            <!-- Kelola Alat -->
             <div class="col-md-4">
                 <div class="card card-fitur p-4 shadow-sm h-100">
                     <div class="icon-box bg-primary bg-opacity-10 text-primary">
@@ -117,7 +92,6 @@ include 'koneksi.php';
                 </div>
             </div>
 
-            <!-- Riwayat Pemesanan -->
             <div class="col-md-4">
                 <div class="card card-fitur p-4 shadow-sm h-100">
                     <div class="icon-box bg-warning bg-opacity-10 text-warning">
@@ -132,7 +106,5 @@ include 'koneksi.php';
             </div>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

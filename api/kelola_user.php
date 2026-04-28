@@ -1,20 +1,20 @@
 <?php
-session_start();
 include 'koneksi.php';
 
-// Proteksi Admin
-if ($_SESSION['role'] != "admin") {
-    header("Location: /api/login.php");
+// Proteksi Admin via Cookie
+$role = $_COOKIE['role'] ?? null;
+if ($role !== "admin") {
+    header("Location: login.php");
     exit();
 }
 
-// Ambil data semua user kecuali admin yang sedang login
+// Ambil data semua user
 $query = mysqli_query($koneksi, "SELECT * FROM users ORDER BY role ASC");
 ?>
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <meta charset="UTF-8">
     <title>Kelola User - TERRALEASE</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
@@ -22,7 +22,7 @@ $query = mysqli_query($koneksi, "SELECT * FROM users ORDER BY role ASC");
     <div class="container mt-5">
         <div class="d-flex justify-content-between align-items-center">
             <h2 class="fw-bold">Daftar Pengguna Sistem</h2>
-            <a href="api/admin_dashboard.php" class="btn btn-secondary btn-sm">Kembali ke Dashboard</a>
+            <a href="admin_dashboard.php" class="btn btn-secondary btn-sm">Kembali ke Dashboard</a>
         </div>
         <hr>
 
@@ -45,15 +45,15 @@ $query = mysqli_query($koneksi, "SELECT * FROM users ORDER BY role ASC");
                         ?>
                         <tr>
                             <td><?= $no++; ?></td>
-                            <td><?= $row['username']; ?></td>
-                            <td><?= $row['email']; ?></td>
+                            <td><?= htmlspecialchars($row['username']); ?></td>
+                            <td><?= htmlspecialchars($row['email']); ?></td>
                             <td>
                                 <span class="badge <?= $row['role'] == 'admin' ? 'bg-primary' : 'bg-info'; ?>">
                                     <?= $row['role']; ?>
                                 </span>
                             </td>
                             <td>
-                                <a href="api/Proses/hapusUser.php?id=<?= $row['id']; ?>" 
+                                <a href="Proses/hapusUser.php?id=<?= $row['id']; ?>" 
                                    class="btn btn-danger btn-sm" 
                                    onclick="return confirm('Yakin ingin menghapus user ini?')">Hapus</a>
                             </td>

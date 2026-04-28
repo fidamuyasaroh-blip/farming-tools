@@ -1,14 +1,14 @@
 <?php
-session_start();
 include 'koneksi.php';
 
-// Proteksi admin
-if (!isset($_SESSION['role']) || $_SESSION['role'] != "admin") {
-    header("Location: /api/login.php");
+// Proteksi admin via Cookie
+$role = $_COOKIE['role'] ?? null;
+if ($role !== "admin") {
+    header("Location: login.php");
     exit();
 }
 
-$query = mysqli_query($koneksi, "SELECT * FROM peminjaman ORDER BY tanggal DESC");
+$query_riwayat = mysqli_query($koneksi, "SELECT * FROM peminjaman ORDER BY tanggal DESC");
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -23,7 +23,7 @@ $query = mysqli_query($koneksi, "SELECT * FROM peminjaman ORDER BY tanggal DESC"
 </head>
 <body>
     <nav class="navbar navbar-dark shadow-sm px-4 py-3">
-        <span class="navbar-brand fw-bold">TERRALEASE ADMIN</span>
+        <span class="navbar-brand fw-bold text-success">TERRALEASE <span class="text-white">ADMIN</span></span>
         <a href="admin_dashboard.php" class="btn btn-secondary btn-sm">← Kembali ke Dashboard</a>
     </nav>
 
@@ -31,49 +31,46 @@ $query = mysqli_query($koneksi, "SELECT * FROM peminjaman ORDER BY tanggal DESC"
         <h2 class="fw-bold mb-1">Riwayat Pemesanan</h2>
         <p class="text-muted mb-4">Semua transaksi peminjaman alat pertanian</p>
 
-    <div class="card shadow-sm border-0" style="border-radius: 15px; overflow: hidden;">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-dark">
-                    <tr>
-                        <th class="ps-4">No</th>
-                        <th>Username</th>
-                        <th>Nama Alat</th>
-                        <th>Durasi</th>
-                        <th>Total Bayar</th>
-                        <th>Metode</th>
-                        <th>Tanggal</th>
-                        <th class="text-center">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php 
-                    // Pastikan query sudah benar
-                    $query_riwayat = mysqli_query($koneksi, "SELECT * FROM peminjaman ORDER BY tanggal DESC");
-                    $no = 1;
-                    while($row = mysqli_fetch_assoc($query_riwayat)): 
-                    ?>
-                    <tr>
-                        <td class="ps-4"><?= $no++; ?></td>
-                        <td><span class="badge bg-success" style="font-size: 0.9rem;">fidaa</span></td>
-                        <td class="fw-bold"><?= $row['nama_alat']; ?></td>
-                        <td><?= $row['durasi']; ?> hari</td>
-                        <td class="text-success fw-bold">Rp <?= number_format($row['total_bayar'], 0, ',', '.'); ?></td>
-                        <td><span class="badge bg-primary"><?= $row['metode_bayar']; ?></span></td>
-                        <td class="small text-muted"><?= date('d M Y, H:i', strtotime($row['tanggal'])); ?></td>
-                        <td class="text-center">
-                            <?php if($row['status'] == 'lunas'): ?>
-                                <span class="badge bg-success px-3 py-2">✓ Sukses</span>
-                            <?php else: ?>
-                                <a href="api/Proses/konfirmasi_bayar.php?id=<?= $row['id']; ?>" class="btn btn-success btn-sm" style="border-radius: 8px;">
-                                    ✓ Konfirmasi
-                                </a>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
+        <div class="card shadow-sm border-0" style="border-radius: 15px; overflow: hidden;">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="ps-4">No</th>
+                            <th>Nama Alat</th>
+                            <th>Durasi</th>
+                            <th>Total Bayar</th>
+                            <th>Metode</th>
+                            <th>Tanggal</th>
+                            <th class="text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        $no = 1;
+                        while($row = mysqli_fetch_assoc($query_riwayat)): 
+                        ?>
+                        <tr>
+                            <td class="ps-4"><?= $no++; ?></td>
+                            <td class="fw-bold"><?= htmlspecialchars($row['nama_alat']); ?></td>
+                            <td><?= $row['durasi']; ?> hari</td>
+                            <td class="text-success fw-bold">Rp <?= number_format($row['total_bayar'], 0, ',', '.'); ?></td>
+                            <td><span class="badge bg-primary"><?= $row['metode_bayar']; ?></span></td>
+                            <td class="small text-muted"><?= date('d M Y, H:i', strtotime($row['tanggal'])); ?></td>
+                            <td class="text-center">
+                                <?php if($row['status'] == 'lunas' || $row['status'] == 'Sukses'): ?>
+                                    <span class="badge bg-success px-3 py-2">✓ Sukses</span>
+                                <?php else: ?>
+                                    <a href="Proses/konfirmasi_bayar.php?id=<?= $row['id']; ?>" class="btn btn-success btn-sm" style="border-radius: 8px;">
+                                        ✓ Konfirmasi
+                                    </a>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </body>
