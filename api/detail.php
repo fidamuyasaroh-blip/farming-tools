@@ -84,7 +84,7 @@ $deskripsi = $data['deskripsi'];
                    <!-- Ganti tombol Pinjam Sekarang: -->
 
                     <?php if ($stok > 0): ?>
-                        <a href="api/spinjam.php?id=<?= $id ?>" class="btn btn-success btn-lg w-100 fw-bold shadow-sm py-3" style="border-radius: 12px; background-color: #2e7d32;">
+                        <a href="api/pinjam.php?id=<?= $id ?>" class="btn btn-success btn-lg w-100 fw-bold shadow-sm py-3" style="border-radius: 12px; background-color: #2e7d32;">
                             Pinjam Sekarang
                         </a>
                     <?php else: ?>
