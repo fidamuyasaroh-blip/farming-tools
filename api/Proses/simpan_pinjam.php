@@ -1,6 +1,12 @@
 <?php
 session_start();
-require_once $_SERVER['DOCUMENT_ROOT'] . '/api/koneksi.php';
+// Gunakan ../ untuk keluar dari folder Proses dan masuk ke folder api
+require_once __DIR__ . '/../koneksi.php'; 
+
+if (!isset($_SESSION['username'])) {
+    header("Location: /api/login.php");
+    exit();
+}
 
 $id_alat  = $_POST['id_alat'] ?? 0;
 $durasi   = $_POST['durasi'] ?? 1;
