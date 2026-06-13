@@ -46,7 +46,6 @@ if (!$result) {
     </style>
 </head>
 <body>
-    <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg navbar-dark shadow-sm fixed-top" style="background-color: #2e7d32;">
         <div class="container">
             <a class="navbar-brand fw-bold fs-3" href="../index.html">TERRALEASE</a>
@@ -83,23 +82,27 @@ if (!$result) {
             <?php if (mysqli_num_rows($result) > 0) : ?>
                 <?php while($row = mysqli_fetch_assoc($result)) : 
                     
-                    // --- LOGIKA PENGAMAN (FALLBACK) ---
-                    // Jika di database nama filenya masih salah, kode ini akan memperbaikinya otomatis saat ditampilkan
+                    // --- LOGIKA PERBAIKAN PATH GAMBAR ---
                     $nama_file = $row['gambar'];
+                    
+                    // Jika data di database cuma nama file (misal: 'seeder.jpg'), kita arahkan ke folder img/
                     if ($row['nama_alat'] == 'Seeder') $nama_file = 'img/seeder.jpg';
                     if ($row['nama_alat'] == 'Fertilizer Spreader') $nama_file = 'img/Fertilizer-Spreader.jpg';
                     if ($row['nama_alat'] == 'Rotavator') $nama_file = 'img/Rotavator_1_63037605e0.jpg';
                     if ($row['nama_alat'] == 'Cultivator') $nama_file = 'img/Cultivator.jpg';
-                    if ($row['nama_alat'] == 'Mesin Modern') $nama_file = 'img/Mesin-pertanian-modern.jpg'; // Hapus ../img/ di sini
-                    // ----------------------------------
+                    if ($row['nama_alat'] == 'Mesin Modern') $nama_file = 'img/Mesin-pertanian-modern.jpg';
+                    
+                    // Bersihkan jika ada inputan database yang tidak sengaja menulis tanda keluar folder "../"
+                    $nama_file = str_replace('../', '', $nama_file);
                 ?>
                 <div class="col-md-6 col-lg-4">
                     <div class="card shadow-sm">
-                        <!-- PATH GAMBAR: Keluar dari api/ lalu masuk ke img/ -->
-                        <img src="../img/<?= htmlspecialchars($nama_file); ?>" 
-                            class="card-img-top" 
-                            alt="<?= htmlspecialchars($row['nama_alat']); ?>"
-                            onerror="this.onerror=null;this.src='https://placehold.co/600x400?text=Gambar+Tidak+Ada';">
+                        
+                        <img src="<?= htmlspecialchars($nama_file); ?>" 
+                             class="card-img-top" 
+                             alt="<?= htmlspecialchars($row['nama_alat']); ?>"
+                             onerror="this.onerror=null;this.src='https://placehold.co/600x400?text=Gambar+Tidak+Ada';">
+                             
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title fw-bold mb-1 text-dark"><?= htmlspecialchars($row['nama_alat']); ?></h5>
                             <p class="card-text text-muted small text-description mb-3">

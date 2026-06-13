@@ -1,15 +1,24 @@
 <?php
 session_start();
-include 'koneksi.php'; // ← ganti dari mysqli_connect langsung
+include 'koneksi.php'; 
+
+// --- PROTEKSI SATPAM LOCALHOST ---
+// Jika sesinya tidak terbaca, tendang balik ke login.php secara bersih
+if (!isset($_SESSION['username'])) {
+    header("Location: login.php");
+    exit();
+}
 
 $id_alat = isset($_GET['id']) ? $_GET['id'] : 0;
 $durasi  = isset($_GET['hari']) ? $_GET['hari'] : 1;
 
+// Ambil data alat berdasarkan ID
 $query = mysqli_query($koneksi, "SELECT * FROM alat WHERE id = '$id_alat'");
 $data  = mysqli_fetch_assoc($query);
 
+// PERBAIKAN: Jika data alat tidak ditemukan, balikkan ke daftar_alat.php (tanpa folder api)
 if (!$data) {
-    header("Location: /api/daftar_alat.php");
+    header("Location: daftar_alat.php");
     exit();
 }
 
@@ -96,7 +105,7 @@ $total_bayar = $durasi * $harga_per_hari;
                 <button type="submit" class="btn btn-success btn-konfirmasi py-3 fw-bold">
                     Konfirmasi & Bayar Sekarang
                 </button>
-                <a href="api/pinjam.php?id=<?php echo $id_alat; ?>" class="btn btn-batal py-2 fw-bold text-center text-decoration-none">
+                <a href="detail.php?id=<?php echo $id_alat; ?>" class="btn btn-batal py-2 fw-bold text-center text-decoration-none">
                     Batal Pinjam
                 </a>
             </div>
