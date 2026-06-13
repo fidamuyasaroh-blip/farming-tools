@@ -21,56 +21,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $tanggal = date('Y-m-d');
     $status  = 'belum lunas';
 
-    // 1. DETEKSI OTOMATIS: Ambil semua nama kolom yang ada di tabel peminjaman kamu
-    $columns = [];
-    $result_fields = mysqli_query($koneksi, "SHOW COLUMNS FROM peminjaman");
-    while ($field = mysqli_fetch_assoc($result_fields)) {
-        $columns[] = strtolower($field['Field']);
-    }
+    // Ambil nama alat asli dari tabel alat untuk dimasukkan ke kolom 'alat' di tabel peminjaman
+    $cari_alat = mysqli_query($koneksi, "SELECT nama_alat FROM alat WHERE id = '$id_alat'");
+    $data_alat = mysqli_fetch_assoc($cari_alat);
+    $nama_alat = $data_alat['nama_alat'] ?? 'Alat Pertanian';
 
-    // 2. PEMETAAN CERDAS: Tentukan kolom mana saja yang cocok dengan data kita
-    $insert_data = [];
+    // =========================================================================
+    // PERBAIKAN STRUKTUR: Disesuaikan 100% dengan isi tabel peminjaman di phpMyAdmin kamu!
+    // Kolom database: nama, alat, durasi, total, metode, status, tanggal
+    // =========================================================================
+    $query = "INSERT INTO peminjaman (nama, alat, durasi, total, metode, status, tanggal) 
+              VALUES ('$username', '$nama_alat', '$durasi', '$total', '$metode', '$status', '$tanggal')";
 
-    // Cek kolom untuk Username
-    if (in_array('username', $columns)) $insert_data['username'] = "'$username'";
-    elseif (in_array('user_id', $columns)) $insert_data['user_id'] = "'$username'";
-
-    // Cek kolom untuk ID Alat / Barang (Penyebab error kamu sebelumnya)
-    if (in_array('id_alat', $columns)) $insert_data['id_alat'] = "'$id_alat'";
-    elseif (in_array('id_barang', $columns)) $insert_data['id_barang'] = "'$id_alat'";
-    elseif (in_array('alat_id', $columns)) $insert_data['alat_id'] = "'$id_alat'";
-    elseif (in_array('barang_id', $columns)) $insert_data['barang_id'] = "'$id_alat'";
-    elseif (in_array('id', $columns) && !isset($insert_data['username'])) $insert_data['id'] = "'$id_alat'"; 
-
-    // Cek kolom untuk Tanggal
-    if (in_array('tgl_pinjam', $columns)) $insert_data['tgl_pinjam'] = "'$tanggal'";
-    elseif (in_array('tgl_sewa', $columns)) $insert_data['tgl_sewa'] = "'$tanggal'";
-    elseif (in_array('tanggal', $columns)) $insert_data['tanggal'] = "'$tanggal'";
-
-    // Cek kolom untuk Durasi / Hari
-    if (in_array('durasi', $columns)) $insert_data['durasi'] = "'$durasi'";
-    elseif (in_array('lama_sewa', $columns)) $insert_data['lama_sewa'] = "'$durasi'";
-    elseif (in_array('hari', $columns)) $insert_data['hari'] = "'$durasi'";
-
-    // Cek kolom untuk Total Harga
-    if (in_array('total_harga', $columns)) $insert_data['total_harga'] = "'$total'";
-    elseif (in_array('total', $columns)) $insert_data['total'] = "'$total'";
-    elseif (in_array('harga', $columns)) $insert_data['harga'] = "'$total'";
-
-    // Cek kolom untuk Metode Pembayaran
-    if (in_array('metode', $columns)) $insert_data['metode'] = "'$metode'";
-    elseif (in_array('metode_pembayaran', $columns)) $insert_data['metode_pembayaran'] = "'$metode'";
-
-    // Cek kolom untuk Status
-    if (in_array('status', $columns)) $insert_data['status'] = "'$status'";
-
-    // 3. SELESAIKAN QUERY SECARA OTOMATIS
-    $nama_kolom = implode(', ', array_keys($insert_data));
-    $nilai_kolom = implode(', ', array_values($insert_data));
-
-    $query = "INSERT INTO peminjaman ($nama_kolom) VALUES ($nilai_kolom)";
-
-    // 4. EKSEKUSI KE DATABASE
     if (mysqli_query($koneksi, $query)) {
         // Kurangi stok alat secara otomatis
         mysqli_query($koneksi, "UPDATE alat SET stok = stok - 1 WHERE id = '$id_alat'");
@@ -81,18 +43,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </script>";
         exit();
     } else {
-        echo "<h4>Gagal Menyimpan. Nama-nama kolom di tabel database Anda saat ini adalah:</h4>";
-        echo "<pre>"; print_rows_fields($columns); echo "</pre>";
-        echo "Pesan Error MySQL: " . mysqli_error($koneksi);
+        echo "Gagal menyimpan pesanan. Pesan Error: " . mysqli_error($koneksi);
     }
 } else {
     header("Location: ../daftar_alat.php");
     exit();
-}
-
-function print_rows_fields($fields) {
-    foreach($fields as $f) {
-        echo "- " . $f . "\n";
-    }
 }
 ?>
