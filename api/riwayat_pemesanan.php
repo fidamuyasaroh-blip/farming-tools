@@ -13,9 +13,10 @@ if (!$username) {
     exit();
 }
 
-// Ambil data riwayat berdasarkan username pembeli
-// Kita coba cari di kolom 'username' atau 'nama' secara fleksibel
-$query = "SELECT * FROM peminjaman WHERE username = '$username' OR nama = '$username' ORDER BY id DESC";
+// =========================================================================
+// PERBAIKAN MUTLAK: Hanya tembak kolom 'username' saja, hapus semua kata 'nama'
+// =========================================================================
+$query = "SELECT * FROM peminjaman WHERE username = '$username' ORDER BY id DESC";
 $result = mysqli_query($koneksi, $query);
 
 if (!$result) {
@@ -63,20 +64,13 @@ if (!$result) {
                 <?php if (mysqli_num_rows($result) > 0) : ?>
                     <?php $no = 1; while($row = mysqli_fetch_assoc($result)) : 
                         
-                        // --- PENANGANAN FILTER KOLOM OTOMATIS (ANTI UNDEFINED KEY) ---
-                        // 1. Deteksi Kolom Nama Alat
-                        $tampil_alat = $row['alat'] ?? $row['nama_alat'] ?? $row['id_alat'] ?? 'Alat Pertanian';
-                        
-                        // 2. Deteksi Kolom Total Harga
-                        $tampil_total = $row['total'] ?? $row['total_harga'] ?? $row['harga'] ?? 0;
-                        
-                        // 3. Deteksi Kolom Tanggal
-                        $tampil_tanggal = $row['tanggal'] ?? $row['tgl_pinjam'] ?? $row['tgl_sewa'] ?? date('Y-m-d');
-                        
-                        // 4. Deteksi Kolom Metode & Durasi
-                        $tampil_metode = $row['metode'] ?? $row['metode_pembayaran'] ?? 'BCA';
-                        $tampil_durasi = $row['durasi'] ?? $row['lama_sewa'] ?? 1;
-                        $tampil_status = $row['status'] ?? 'belum lunas';
+                        // --- FILTER KEBAL: Memastikan key array ada dan sesuai dengan database kamu ---
+                        $tampil_alat    = $row['alat'] ?? 'Alat Pertanian';
+                        $tampil_total   = $row['total'] ?? 0;
+                        $tampil_tanggal = $row['tanggal'] ?? date('Y-m-d');
+                        $tampil_metode  = $row['metode'] ?? 'BCA';
+                        $tampil_durasi  = $row['durasi'] ?? 1;
+                        $tampil_status  = $row['status'] ?? 'belum lunas';
                     ?>
                         <tr>
                             <td><?= $no++; ?></td>
