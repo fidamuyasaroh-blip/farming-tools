@@ -4,15 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - TERRALEASE</title>
-    <!-- PERBAIKAN: Format link CDN Bootstrap yang benar -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { 
             background-color: #f8f9fa; 
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-image: url('https://placehold.co/1920x1080?text=Background+Sawah'); /* Opsional: Ganti dengan gambar bg jika ada */
+            /* PERBAIKAN: Mengganti teks placeholder dengan gambar sawah asli */
+            background-image: url('https://images.unsplash.com/photo-1516253593875-bd7ba052fbc5?q=80&w=1920'); 
             background-size: cover;
             background-position: center;
+            background-repeat: no-repeat;
         }
         .login-container {
             min-height: 100vh;
@@ -22,10 +23,11 @@
         }
         .card { 
             width: 100%;
-            max-width: 400px; /* Sedikit dilebarkan agar lebih proporsional */
+            max-width: 400px; 
             border: none; 
             border-radius: 15px; 
-            background: rgba(255, 255, 255, 0.95); /* Efek kaca tipis */
+            /* Efek kaca transparan (Glassmorphism) agar gambar latar belakang sedikit tembus */
+            background: rgba(255, 255, 255, 0.9); 
             backdrop-filter: blur(10px);
         }
         .form-control:focus {
@@ -35,6 +37,7 @@
     </style>
 </head>
 <body>
+
     <div class="login-container px-3">
         <form action="Proses/prosesLogin.php" method="POST" class="card p-4 p-md-5 shadow-lg">
             
@@ -60,7 +63,7 @@
                 <a href="register.php" class="text-success fw-bold text-decoration-none">Daftar di sini</a>
             </p>
             <div class="text-center mt-3">
-                <a href="../index.html" class="text-muted small text-decoration-none">← Kembali ke Beranda</a>
+                <a href="../index.php" class="text-muted small text-decoration-none">← Kembali ke Beranda</a>
             </div>
         </form>
     </div>
