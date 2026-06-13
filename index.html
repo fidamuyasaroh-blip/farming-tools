@@ -8,8 +8,20 @@
     <style>
         .hero {
             background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1332&q=80');
-            background-size: cover; background-position: center; height: 100vh;
-            display: flex; align-items: center; justify-content: center; color: white;
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .hero h1 { font-size: 3.5rem; font-weight: 800; }
+        .btn-custom {
+            padding: 15px 40px;
+            font-weight: bold;
+            border-radius: 50px;
+            text-transform: uppercase;
         }
         .navbar { background-color: #2e7d32 !important; }
     </style>
@@ -19,13 +31,19 @@
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow">
         <div class="container">
             <a class="navbar-brand fw-bold fs-3" href="index.html">TERRALEASE</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
             <div class="collapse navbar-collapse" id="navMenu">
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item"><a class="nav-link active" href="index.html">Beranda</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#" id="link-statistik">Statistik Pertanian</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#" id="link-katalog">Katalog</a></li>
-                    <li class="nav-item ms-lg-3">
-                        <a href="login.html" class="btn btn-outline-light btn-sm rounded-pill px-3 me-2">Login</a>
+                    
+                    <li class="nav-item"><a class="nav-link" href="data_ihpb_bps.php" id="link-statistik">Statistik Pertanian</a></li>
+                    <li class="nav-item"><a class="nav-link" href="daftar_alat.php" id="link-katalog">Katalog</a></li>
+                    
+                    <li class="nav-item ms-lg-3" id="auth-buttons">
+                        <a href="login.php" class="btn btn-outline-light btn-sm rounded-pill px-3 me-2">Login</a>
+                        <a href="register.php" class="btn btn-warning btn-sm rounded-pill px-3">Daftar</a>
                     </li>
                 </ul>
             </div>
@@ -34,23 +52,57 @@
 
     <header class="hero">
         <div class="text-center container">
-            <h1>Modernisasi Pertanian Anda</h1>
-            <p>Temukan alat pertanian terbaik dengan mudah bersama TERRALEASE</p>
-            <a href="login.html" class="btn btn-warning fw-bold rounded-pill px-5 py-3">LOGIN UNTUK MEMESAN</a>
+            <h1 id="hero-title">Modernisasi Pertanian Anda</h1>
+            <p id="hero-desc">Temukan alat pertanian terbaik dengan mudah bersama TERRALEASE</p>
+            <a href="login.php" id="hero-btn" class="btn btn-warning btn-custom shadow-lg text-dark">Login Untuk Memesan</a>
         </div>
     </header>
 
     <script>
-        // Karena di Vercel tidak ada database, kita buat simulasi: belum login
-        const proteksiAkses = (e) => {
-            e.preventDefault(); // Cegah pindah halaman
-            alert("Silakan Login terlebih dahulu untuk melihat fitur ini!");
-            window.location.href = "login.html"; // Lempar ke halaman login
-        };
+        const linkBps = document.getElementById('link-statistik');
+        const linkKatalog = document.getElementById('link-katalog');
+        const authButtons = document.getElementById('auth-buttons');
+        const heroTitle = document.getElementById('hero-title');
+        const heroDesc = document.getElementById('hero-desc');
+        const heroBtn = document.getElementById('hero-btn');
 
-        // Pasang satpam di menu navigasi
-        document.getElementById('link-statistik').addEventListener('click', proteksiAkses);
-        document.getElementById('link-katalog').addEventListener('click', proteksiAkses);
+        // Fungsi pembaca status login dari Cookie (Vercel/Localhost friendly)
+        function getCookie(name) {
+            let matches = document.cookie.match(new RegExp(
+                "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+            ));
+            return matches ? decodeURIComponent(matches[1]) : undefined;
+        }
+
+        const username = getCookie('username');
+
+        if (username) {
+            // --- JIKA USER SUDAH LOGIN ---
+            authButtons.innerHTML = `
+                <span class="text-white me-3">Halo, <strong>${username}</strong></span>
+                <a href="Proses/logout.php" class="btn btn-danger btn-sm rounded-pill px-3">Logout</a>
+            `;
+            
+            heroTitle.innerText = `Halo, ${username}!`;
+            heroDesc.innerText = "Siap untuk memodernisasi lahan pertanian Anda hari ini?";
+            heroBtn.innerText = "Lihat Katalog Alat";
+            heroBtn.href = "daftar_alat.php";
+            heroBtn.className = "btn btn-success btn-custom shadow-lg text-white"; 
+        } else {
+            // --- JIKA BELUM LOGIN ---
+            // Hanya buat ranjau alert jika menekan tombol Katalog & Statistik BPS saja!
+            const proteksiAkses = (e) => {
+                e.preventDefault(); 
+                alert("Silakan Login terlebih dahulu untuk mengakses fitur ini!");
+                window.location.href = "login.php";
+            };
+
+            // Pasang satpam secara spesifik (Tombol login & register asli tidak akan terganggu)
+            if(linkBps) linkBps.addEventListener('click', proteksiAkses);
+            if(linkKatalog) linkKatalog.addEventListener('click', proteksiAkses);
+        }
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
