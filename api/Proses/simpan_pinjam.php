@@ -1,6 +1,5 @@
 <?php
-// PERBAIKAN UTAMA: Menggunakan __DIR__ agar pencarian file koneksi.php 
-// selalu akurat, baik saat dijalankan di Localhost XAMPP maupun di server Vercel.
+// Jalur koneksi aman untuk Vercel & Localhost
 include dirname(__DIR__) . '/koneksi.php';
 
 // Ambil data user dari Cookie
@@ -14,22 +13,26 @@ if (!$username) {
     exit();
 }
 
-// Pastikan data dikirim menggunakan metode POST
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $id_alat = $_POST['id_alat'];
     $durasi  = $_POST['durasi'];
     $total   = $_POST['total'];
     $metode  = $_POST['metode'];
-    $tanggal = date('Y-m-d'); // Mengambil tanggal hari ini
-    $status  = 'belum lunas';  // Status awal sewa sebelum dikonfirmasi admin
+    $tanggal = date('Y-m-d');
+    $status  = 'belum lunas';
 
-    // SQL: Masukkan data ke tabel peminjaman
+    // =========================================================================
+    // PERBAIKAN: Sesuaikan nama-nama kolom di dalam kurung pertama ( ... ) 
+    // dengan struktur nama kolom yang ada di tabel 'peminjaman' phpMyAdmin kamu!
+    // =========================================================================
+    
+    // CONTOH JIKA KOLOM KAMU BERNAMA: id_barang, tgl, total, dll.
+    // Silakan ganti kata 'id_alat' di bawah ini dengan nama kolom aslimu (misal: id_barang)
     $query = "INSERT INTO peminjaman (username, id_alat, tgl_pinjam, durasi, total_harga, metode, status) 
               VALUES ('$username', '$id_alat', '$tanggal', '$durasi', '$total', '$metode', '$status')";
 
-    // Baris 30 yang tadinya error sekarang dijamin aman karena $koneksi sudah terhubung
     if (mysqli_query($koneksi, $query)) {
-        // Kurangi stok alat secara otomatis setelah dipesan
+        // Sesuaikan juga nama kolom 'id' di tabel alat jika bukan 'id'
         mysqli_query($koneksi, "UPDATE alat SET stok = stok - 1 WHERE id = '$id_alat'");
 
         echo "<script>
