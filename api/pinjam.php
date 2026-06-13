@@ -42,7 +42,7 @@ if (!$data) {
     <h2 class="fw-bold mb-1">Konfirmasi Sewa</h2>
     <p class="text-muted mb-4">Anda akan menyewa: <span class="badge bg-success fs-6"><?= htmlspecialchars($data['nama_alat']); ?></span></p>
 
-    <form action="pembayaran.php" method="GET">
+    <form action="pembayaran.php" method="POST">
         <input type="hidden" name="id" value="<?= $id_alat; ?>">
         
         <div class="mb-4 text-start">

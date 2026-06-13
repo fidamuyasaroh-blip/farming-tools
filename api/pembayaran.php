@@ -1,7 +1,7 @@
 <?php
 include 'koneksi.php';
 
-// Proteksi Cookie agar status login tetap stabil di Vercel maupun Localhost
+// Proteksi Cookie status login
 $username = $_COOKIE['username'] ?? null;
 
 if (!$username) {
@@ -12,9 +12,15 @@ if (!$username) {
     exit();
 }
 
-// Menangkap data kiriman dari pinjam.php menggunakan metode GET
-$id_alat = isset($_GET['id']) ? $_GET['id'] : 0;
-$durasi  = isset($_GET['hari']) ? $_GET['hari'] : 1;
+// PERBAIKAN UTAMA: Menangkap data menggunakan $_POST dari form pinjam.php
+// Jika user mengakses langsung tanpa post, kita buat fallback ke 0 / 1
+$id_alat = isset($_POST['id']) ? $_POST['id'] : (isset($_GET['id']) ? $_GET['id'] : 0);
+$durasi  = isset($_POST['hari']) ? $_POST['hari'] : (isset($_POST['lama_sewa']) ? $_POST['lama_sewa'] : 1);
+
+// Jika di form pinjam.php kamu nama input text durasinya adalah 'hari' (bisa dicek dari name="...")
+if(isset($_POST['hari'])) {
+    $durasi = $_POST['hari'];
+}
 
 // Ambil data alat dari database berdasarkan ID
 $query = mysqli_query($koneksi, "SELECT * FROM alat WHERE id = '$id_alat'");
