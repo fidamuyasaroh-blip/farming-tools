@@ -1,6 +1,7 @@
 <?php
-// Masuk ke file koneksi (naik satu tingkat dari folder Proses/)
-include '../koneksi.php';
+// PERBAIKAN UTAMA: Menggunakan __DIR__ agar pencarian file koneksi.php 
+// selalu akurat, baik saat dijalankan di Localhost XAMPP maupun di server Vercel.
+include dirname(__DIR__) . '/koneksi.php';
 
 // Ambil data user dari Cookie
 $username = $_COOKIE['username'] ?? null;
@@ -23,10 +24,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $status  = 'belum lunas';  // Status awal sewa sebelum dikonfirmasi admin
 
     // SQL: Masukkan data ke tabel peminjaman
-    // Sesuaikan nama kolom tabel database kamu jika berbeda (misal: username, id_alat, tgl_pinjam, durasi, total_harga, metode, status)
     $query = "INSERT INTO peminjaman (username, id_alat, tgl_pinjam, durasi, total_harga, metode, status) 
               VALUES ('$username', '$id_alat', '$tanggal', '$durasi', '$total', '$metode', '$status')";
 
+    // Baris 30 yang tadinya error sekarang dijamin aman karena $koneksi sudah terhubung
     if (mysqli_query($koneksi, $query)) {
         // Kurangi stok alat secara otomatis setelah dipesan
         mysqli_query($koneksi, "UPDATE alat SET stok = stok - 1 WHERE id = '$id_alat'");
