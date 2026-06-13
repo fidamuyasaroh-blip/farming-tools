@@ -21,18 +21,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $tanggal = date('Y-m-d');
     $status  = 'belum lunas';
 
+    // Cari nama alat dari tabel alat sebagai cadangan jika kolomnya bernama 'nama_alat'
+    $cari_alat = mysqli_query($koneksi, "SELECT nama_alat FROM alat WHERE id = '$id_alat'");
+    $data_alat = mysqli_fetch_assoc($cari_alat);
+    $nama_alat = $data_alat['nama_alat'] ?? '';
+
     // =========================================================================
-    // PERBAIKAN: Sesuaikan nama-nama kolom di dalam kurung pertama ( ... ) 
-    // dengan struktur nama kolom yang ada di tabel 'peminjaman' phpMyAdmin kamu!
+    // SILAKAN PILIH SALAH SATU QUERY DI BAWAH INI YANG COCOK DENGAN TABELMU:
+    // (Buka salah satu tanda komentar '//' di bawah ini yang sesuai)
     // =========================================================================
     
-    // CONTOH JIKA KOLOM KAMU BERNAMA: id_barang, tgl, total, dll.
-    // Silakan ganti kata 'id_alat' di bawah ini dengan nama kolom aslimu (misal: id_barang)
-    $query = "INSERT INTO peminjaman (username, id_alat, tgl_pinjam, durasi, total_harga, metode, status) 
+    // Pilihan 1: Jika di phpMyAdmin kolomnya bernama 'id_barang' dan 'total_harga'
+    $query = "INSERT INTO peminjaman (username, id_barang, tgl_pinjam, durasi, total_harga, metode, status) 
               VALUES ('$username', '$id_alat', '$tanggal', '$durasi', '$total', '$metode', '$status')";
+              
+    // Pilihan 2: Jika di phpMyAdmin kolomnya bernama 'nama_alat' (menyimpan teks nama alat)
+    // $query = "INSERT INTO peminjaman (username, nama_alat, tgl_pinjam, durasi, total_harga, metode, status) 
+    //           VALUES ('$username', '$nama_alat', '$tanggal', '$durasi', '$total', '$metode', '$status')";
+
+    // Pilihan 3: Jika di phpMyAdmin kolomnya bernama 'id_alat' tapi totalnya hanya bernama 'total'
+    // $query = "INSERT INTO peminjaman (username, id_alat, tgl_pinjam, durasi, total, metode, status) 
+    //           VALUES ('$username', '$id_alat', '$tanggal', '$durasi', '$total', '$metode', '$status')";
+
 
     if (mysqli_query($koneksi, $query)) {
-        // Sesuaikan juga nama kolom 'id' di tabel alat jika bukan 'id'
+        // Kurangi stok alat
         mysqli_query($koneksi, "UPDATE alat SET stok = stok - 1 WHERE id = '$id_alat'");
 
         echo "<script>
@@ -41,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </script>";
         exit();
     } else {
-        echo "Gagal menyimpan pesanan: " . mysqli_error($koneksi);
+        echo "Gagal menyimpan pesanan. Pesan Error: " . mysqli_error($koneksi);
     }
 } else {
     header("Location: ../daftar_alat.php");
