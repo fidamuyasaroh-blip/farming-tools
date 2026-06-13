@@ -1,7 +1,7 @@
 <?php
 include 'koneksi.php';
 
-// Proteksi Cookie agar stabil di Vercel/Localhost
+// Proteksi Cookie agar status login tetap stabil di Vercel maupun Localhost
 $username = $_COOKIE['username'] ?? null;
 
 if (!$username) {
@@ -12,15 +12,16 @@ if (!$username) {
     exit();
 }
 
-// Menangkap data kiriman dari pinjam.php
+// Menangkap data kiriman dari pinjam.php menggunakan metode GET
 $id_alat = isset($_GET['id']) ? $_GET['id'] : 0;
 $durasi  = isset($_GET['hari']) ? $_GET['hari'] : 1;
 
-// Ambil data alat dari database
+// Ambil data alat dari database berdasarkan ID
 $query = mysqli_query($koneksi, "SELECT * FROM alat WHERE id = '$id_alat'");
 $data  = mysqli_fetch_assoc($query);
 
 if (!$data) {
+    // Jika data alat tidak ditemukan, kembalikan ke katalog
     header("Location: daftar_alat.php");
     exit();
 }
@@ -41,7 +42,7 @@ $total_bayar = $durasi * $harga_per_hari;
         .payment-card { max-width: 550px; margin: auto; border-radius: 20px; border: none; }
         .method-box { border: 2px solid #eee; border-radius: 12px; padding: 15px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; }
         input[type="radio"] { display: none; }
-        input[type="radio"]:checked + .method-box { border-color: #2e7d32; background: #f1f8e9; }
+        input[type="radio"]:checked + .method-box { border-color: #2e7d32; background: #f1f8e9; box-shadow: 0 4px 10px rgba(46, 125, 50, 0.1); }
     </style>
 </head>
 <body>
@@ -62,7 +63,9 @@ $total_bayar = $durasi * $harga_per_hari;
         </div>
 
         <form action="Proses/simpan_pinjam.php" method="POST">
+            
             <input type="hidden" name="id_alat" value="<?= $id_alat; ?>">
+            <input type="hidden" name="nama_alat" value="<?= htmlspecialchars($alat); ?>"> 
             <input type="hidden" name="durasi" value="<?= $durasi; ?>">
             <input type="hidden" name="total" value="<?= $total_bayar; ?>">
 
@@ -103,11 +106,12 @@ $total_bayar = $durasi * $harga_per_hari;
 
             <div class="d-grid gap-2 mt-4">
                 <button type="submit" class="btn btn-success py-3 fw-bold">Konfirmasi & Bayar Sekarang</button>
-                <a href="daftar_alat.php" class="btn btn-light py-2">Batal</a>
+                <a href="daftar_alat.php" class="btn btn-light py-2 border">Batal</a>
             </div>
         </form>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

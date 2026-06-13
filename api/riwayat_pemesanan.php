@@ -1,8 +1,6 @@
 <?php
-// Hubungkan koneksi.php yang berada di folder yang sama (api/)
 require_once 'koneksi.php';
 
-// Ambil data user dari Cookie
 $username = $_COOKIE['username'] ?? null;
 
 if (!$username) {
@@ -13,9 +11,6 @@ if (!$username) {
     exit();
 }
 
-// =========================================================================
-// PERBAIKAN MUTLAK: Hanya tembak kolom 'username' saja, hapus semua kata 'nama'
-// =========================================================================
 $query = "SELECT * FROM peminjaman WHERE username = '$username' ORDER BY id DESC";
 $result = mysqli_query($koneksi, $query);
 
@@ -34,6 +29,7 @@ if (!$result) {
     <style>
         body { background-color: #f8f9fa; padding-top: 50px; font-family: 'Plus Jakarta Sans', sans-serif; }
         .table-responsive { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .btn-status { font-size: 0.85rem; font-weight: bold; border-radius: 30px; padding: 6px 15px; }
     </style>
 </head>
 <body>
@@ -63,8 +59,6 @@ if (!$result) {
             <tbody>
                 <?php if (mysqli_num_rows($result) > 0) : ?>
                     <?php $no = 1; while($row = mysqli_fetch_assoc($result)) : 
-                        
-                        // --- FILTER KEBAL: Memastikan key array ada dan sesuai dengan database kamu ---
                         $tampil_alat    = $row['alat'] ?? 'Alat Pertanian';
                         $tampil_total   = $row['total'] ?? 0;
                         $tampil_tanggal = $row['tanggal'] ?? date('Y-m-d');
@@ -83,9 +77,11 @@ if (!$result) {
                             <td><span class="badge bg-secondary"><?= htmlspecialchars($tampil_metode); ?></span></td>
                             <td>
                                 <?php if (strtolower($tampil_status) == 'lunas') : ?>
-                                    <span class="badge bg-success px-3 py-2">Lunas</span>
+                                    <span class="badge bg-success px-3 py-2 text-white rounded-pill fw-bold">Lunas</span>
                                 <?php else : ?>
-                                    <span class="badge bg-warning text-dark px-3 py-2">Belum Lunas</span>
+                                    <button onclick="bayarSekarang('<?= $row['id']; ?>', '<?= htmlspecialchars($tampil_alat); ?>')" class="btn btn-warning btn-status text-dark shadow-sm">
+                                        Belum Lunas
+                                    </button>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -99,6 +95,13 @@ if (!$result) {
         </table>
     </div>
 </div>
+
+<script>
+// Fungsi JavaScript ketika tombol "Belum Lunas" diklik
+function bayarSekarang(idPesanan, namaAlat) {
+    alert("Instruksi Pembayaran untuk " + namaAlat + " (ID: " + idPesanan + "):\nSilakan lakukan transfer sesuai metode pilihan Anda, lalu hubungi admin untuk konfirmasi aktivasi sewa!");
+}
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
