@@ -85,20 +85,22 @@ if (!$result) {
                     // --- LOGIKA PERBAIKAN PATH GAMBAR ---
                     $nama_file = $row['gambar'];
                     
-                    // Jika data di database cuma nama file (misal: 'seeder.jpg'), kita arahkan ke folder img/
-                    if ($row['nama_alat'] == 'Seeder') $nama_file = 'img/seeder.jpg';
-                    if ($row['nama_alat'] == 'Fertilizer Spreader') $nama_file = 'img/Fertilizer-Spreader.jpg';
-                    if ($row['nama_alat'] == 'Rotavator') $nama_file = 'img/Rotavator_1_63037605e0.jpg';
-                    if ($row['nama_alat'] == 'Cultivator') $nama_file = 'img/Cultivator.jpg';
-                    if ($row['nama_alat'] == 'Mesin Modern') $nama_file = 'img/Mesin-pertanian-modern.jpg';
-                    
-                    // Bersihkan jika ada inputan database yang tidak sengaja menulis tanda keluar folder "../"
+                    // Hilangkan embel-embel folder bawaan database agar tidak dobel path
                     $nama_file = str_replace('../', '', $nama_file);
+                    $nama_file = str_replace('img/', '', $nama_file);
+                    
+                    // Fallback manual berdasarkan nama alat jika nama file di database berbeda
+                    if ($row['nama_alat'] == 'Seeder') $nama_file = 'seeder.jpg';
+                    if ($row['nama_alat'] == 'Fertilizer Spreader') $nama_file = 'Fertilizer-Spreader.jpg';
+                    if ($row['nama_alat'] == 'Rotavator') $nama_file = 'Rotavator_1_63037605e0.jpg';
+                    if ($row['nama_alat'] == 'Cultivator') $nama_file = 'Cultivator.jpg';
+                    if ($row['nama_alat'] == 'Mesin Modern') $nama_file = 'Mesin-pertanian-modern.jpg';
+                    if ($row['nama_alat'] == 'Combine Harvester') $nama_file = 'combine-harvester.jpg'; // Tambahan untuk Combine Harvester kamu
                 ?>
                 <div class="col-md-6 col-lg-4">
                     <div class="card shadow-sm">
                         
-                        <img src="<?= htmlspecialchars($nama_file); ?>" 
+                        <img src="../img/<?= htmlspecialchars($nama_file); ?>" 
                              class="card-img-top" 
                              alt="<?= htmlspecialchars($row['nama_alat']); ?>"
                              onerror="this.onerror=null;this.src='https://placehold.co/600x400?text=Gambar+Tidak+Ada';">
@@ -115,7 +117,7 @@ if (!$result) {
                                 <p class="card-text text-secondary mb-3" style="font-size: 0.85rem;">
                                     Stok: <span class="badge bg-light text-dark border"><?= htmlspecialchars($row['stok']); ?> unit</span>
                                 </p>
-                                <a href="detail.php?id=<?= $row['id']; ?>" class="btn btn-success w-100 fw-bold py-2">Lihat Detail</a>
+                                <a href="pinjam.php?id=<?= $row['id']; ?>" class="btn btn-success w-100 fw-bold py-2">Lihat Detail</a>
                             </div>
                         </div>
                     </div>

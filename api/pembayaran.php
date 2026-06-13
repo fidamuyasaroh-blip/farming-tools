@@ -1,22 +1,25 @@
 <?php
-session_start();
-include 'koneksi.php'; 
+include 'koneksi.php';
 
-// --- PROTEKSI SATPAM LOCALHOST ---
-// Jika sesinya tidak terbaca, tendang balik ke login.php secara bersih
-if (!isset($_SESSION['username'])) {
-    header("Location: login.php");
+// PERBAIKAN UTAMA: Membaca login menggunakan Cookie agar tidak mental ke login saat di Vercel
+$username = $_COOKIE['username'] ?? null;
+
+if (!$username) {
+    echo "<script>
+        alert('Sesi bermain Anda habis, silakan login kembali.');
+        window.location.href = 'login.php';
+    </script>";
     exit();
 }
 
+// Menangkap data kiriman dari pinjam.php
 $id_alat = isset($_GET['id']) ? $_GET['id'] : 0;
 $durasi  = isset($_GET['hari']) ? $_GET['hari'] : 1;
 
-// Ambil data alat berdasarkan ID
+// Ambil data dari database
 $query = mysqli_query($koneksi, "SELECT * FROM alat WHERE id = '$id_alat'");
 $data  = mysqli_fetch_assoc($query);
 
-// PERBAIKAN: Jika data alat tidak ditemukan, balikkan ke daftar_alat.php (tanpa folder api)
 if (!$data) {
     header("Location: daftar_alat.php");
     exit();
@@ -38,10 +41,6 @@ $total_bayar = $durasi * $harga_per_hari;
         .payment-card { max-width: 600px; margin: auto; border-radius: 20px; border: none; }
         .method-box { border: 2px solid #eee; border-radius: 12px; padding: 15px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; }
         input[type="radio"]:checked + .method-box { border-color: #2e7d32; background: #f1f8e9; border-width: 2px; }
-        .btn-konfirmasi { border-radius: 12px; background-color: #2e7d32; border: none; }
-        .btn-konfirmasi:hover { background-color: #1b5e20; }
-        .btn-batal { border-radius: 12px; background-color: #f39c12; border: none; color: white; transition: 0.3s; }
-        .btn-batal:hover { background-color: #e67e22; color: white; }
     </style>
 </head>
 <body>
@@ -52,19 +51,19 @@ $total_bayar = $durasi * $harga_per_hari;
         
         <div class="bg-light p-3 rounded-3 mb-4 border">
             <div class="d-flex justify-content-between mb-2">
-                <span>Alat: <strong><?php echo htmlspecialchars($alat); ?></strong></span>
-                <span><?php echo $durasi; ?> Hari</span>
+                <span>Alat: <strong><?= htmlspecialchars($alat); ?></strong></span>
+                <span><?= $durasi; ?> Hari</span>
             </div>
             <div class="d-flex justify-content-between fw-bold text-dark fs-5">
                 <span>Total Tagihan:</span>
-                <span class="text-success">Rp <?php echo number_format($total_bayar, 0, ',', '.'); ?></span>
+                <span class="text-success">Rp <?= number_format($total_bayar, 0, ',', '.'); ?></span>
             </div>
         </div>
 
         <form action="Proses/simpan_pinjam.php" method="POST">
-            <input type="hidden" name="id_alat" value="<?php echo $id_alat; ?>">
-            <input type="hidden" name="durasi" value="<?php echo $durasi; ?>">
-            <input type="hidden" name="total" value="<?php echo $total_bayar; ?>">
+            <input type="hidden" name="id_alat" value="<?= $id_alat; ?>">
+            <input type="hidden" name="durasi" value="<?= $durasi; ?>">
+            <input type="hidden" name="total" value="<?= $total_bayar; ?>">
 
             <h5 class="mb-3 fw-semibold">Pilih Metode Pembayaran</h5>
 
@@ -79,40 +78,13 @@ $total_bayar = $durasi * $harga_per_hari;
                 </div>
             </label>
 
-            <label class="w-100 mb-2" style="cursor: pointer;">
-                <input type="radio" name="metode" value="GOPAY" class="d-none">
-                <div class="method-box">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/8/86/Gopay_logo.svg" width="60" class="me-3">
-                    <div>
-                        <strong>GoPay</strong><br>
-                        <small class="text-muted">Bayar instan via aplikasi Gojek</small>
-                    </div>
-                </div>
-            </label>
-
-            <label class="w-100 mb-4" style="cursor: pointer;">
-                <input type="radio" name="metode" value="DANA" class="d-none">
-                <div class="method-box">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/72/Logo_dana_blue.svg" width="60" class="me-3">
-                    <div>
-                        <strong>DANA</strong><br>
-                        <small class="text-muted">Konfirmasi otomatis tanpa upload bukti</small>
-                    </div>
-                </div>
-            </label>
-
-            <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-success btn-konfirmasi py-3 fw-bold">
-                    Konfirmasi & Bayar Sekarang
-                </button>
-                <a href="detail.php?id=<?php echo $id_alat; ?>" class="btn btn-batal py-2 fw-bold text-center text-decoration-none">
-                    Batal Pinjam
-                </a>
+            <div class="d-grid gap-2 mt-4">
+                <button type="submit" class="btn btn-success py-3 fw-bold">Konfirmasi & Bayar Sekarang</button>
+                <a href="daftar_alat.php" class="btn btn-secondary py-2 fw-bold text-center text-decoration-none">Batal</a>
             </div>
         </form>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
