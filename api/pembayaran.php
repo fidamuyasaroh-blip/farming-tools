@@ -89,7 +89,7 @@ $total_bayar = $durasi * $harga_per_hari;
             </label>
 
             <label class="w-100 mb-2">
-                <input type="radio" name="metode" value="Transfer Mandiri">
+                <input type="radio" name="metode" value="Transfer Mandiri" required checked>
                 <div class="method-box">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/a/ad/Bank_Mandiri_logo_2016.svg" width="60" class="me-3">
                     <div>
@@ -100,7 +100,7 @@ $total_bayar = $durasi * $harga_per_hari;
             </label>
 
             <label class="w-100 mb-3">
-                <input type="radio" name="metode" value="Gopay">
+                <input type="radio" name="metode" value="Gopay" required checked>
                 <div class="method-box">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/8/86/Gopay_logo.svg" width="60" class="me-3">
                     <div>
