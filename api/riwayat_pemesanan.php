@@ -13,10 +13,9 @@ if (!$username) {
     exit();
 }
 
-// =========================================================================
-// PERBAIKAN UTAMA: Mengubah 'WHERE nama = ...' menjadi 'WHERE username = ...'
-// =========================================================================
-$query = "SELECT * FROM peminjaman WHERE username = '$username' ORDER BY id DESC";
+// Ambil data riwayat berdasarkan username pembeli
+// Kita coba cari di kolom 'username' atau 'nama' secara fleksibel
+$query = "SELECT * FROM peminjaman WHERE username = '$username' OR nama = '$username' ORDER BY id DESC";
 $result = mysqli_query($koneksi, $query);
 
 if (!$result) {
@@ -62,16 +61,34 @@ if (!$result) {
             </thead>
             <tbody>
                 <?php if (mysqli_num_rows($result) > 0) : ?>
-                    <?php $no = 1; while($row = mysqli_fetch_assoc($result)) : ?>
+                    <?php $no = 1; while($row = mysqli_fetch_assoc($result)) : 
+                        
+                        // --- PENANGANAN FILTER KOLOM OTOMATIS (ANTI UNDEFINED KEY) ---
+                        // 1. Deteksi Kolom Nama Alat
+                        $tampil_alat = $row['alat'] ?? $row['nama_alat'] ?? $row['id_alat'] ?? 'Alat Pertanian';
+                        
+                        // 2. Deteksi Kolom Total Harga
+                        $tampil_total = $row['total'] ?? $row['total_harga'] ?? $row['harga'] ?? 0;
+                        
+                        // 3. Deteksi Kolom Tanggal
+                        $tampil_tanggal = $row['tanggal'] ?? $row['tgl_pinjam'] ?? $row['tgl_sewa'] ?? date('Y-m-d');
+                        
+                        // 4. Deteksi Kolom Metode & Durasi
+                        $tampil_metode = $row['metode'] ?? $row['metode_pembayaran'] ?? 'BCA';
+                        $tampil_durasi = $row['durasi'] ?? $row['lama_sewa'] ?? 1;
+                        $tampil_status = $row['status'] ?? 'belum lunas';
+                    ?>
                         <tr>
                             <td><?= $no++; ?></td>
-                            <td><?= isset($row['tanggal']) ? date('d M Y', strtotime($row['tanggal'])) : date('d M Y'); ?></td>
-                            <td><strong><?= htmlspecialchars($row['alat']); ?></strong></td>
-                            <td><?= htmlspecialchars($row['durasi']); ?> Hari</td>
-                            <td class="text-success fw-bold">Rp <?= number_format($row['total'], 0, ',', '.'); ?></td>
-                            <td><span class="badge bg-secondary"><?= htmlspecialchars($row['metode']); ?></span></td>
+                            <td><?= date('d M Y', strtotime($tampil_tanggal)); ?></td>
+                            <td><strong><?= htmlspecialchars($tampil_alat); ?></strong></td>
+                            <td><?= htmlspecialchars($tampil_durasi); ?> Hari</td>
+                            <td class="text-success fw-bold">
+                                Rp <?= number_format((float)$tampil_total, 0, ',', '.'); ?>
+                            </td>
+                            <td><span class="badge bg-secondary"><?= htmlspecialchars($tampil_metode); ?></span></td>
                             <td>
-                                <?php if ($row['status'] == 'lunas') : ?>
+                                <?php if (strtolower($tampil_status) == 'lunas') : ?>
                                     <span class="badge bg-success px-3 py-2">Lunas</span>
                                 <?php else : ?>
                                     <span class="badge bg-warning text-dark px-3 py-2">Belum Lunas</span>
