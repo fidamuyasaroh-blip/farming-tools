@@ -1,5 +1,5 @@
 <?php
-// PERBAIKAN UTAMA: Karena file ini ada di folder api/, panggil koneksi.php langsung tanpa '../'
+// Hubungkan koneksi.php yang berada di folder yang sama (api/)
 require_once 'koneksi.php';
 
 // Ambil data user dari Cookie
@@ -13,10 +13,15 @@ if (!$username) {
     exit();
 }
 
-// Ambil data riwayat berdasarkan username pembeli
-// Kolom pencariannya disesuaikan dengan database kamu yaitu 'nama'
-$query = "SELECT * FROM peminjaman WHERE nama = '$username' ORDER BY id DESC";
+// =========================================================================
+// PERBAIKAN UTAMA: Mengubah 'WHERE nama = ...' menjadi 'WHERE username = ...'
+// =========================================================================
+$query = "SELECT * FROM peminjaman WHERE username = '$username' ORDER BY id DESC";
 $result = mysqli_query($koneksi, $query);
+
+if (!$result) {
+    die("Query Error: " . mysqli_error($koneksi));
+}
 ?>
 
 <!DOCTYPE html>
@@ -60,7 +65,7 @@ $result = mysqli_query($koneksi, $query);
                     <?php $no = 1; while($row = mysqli_fetch_assoc($result)) : ?>
                         <tr>
                             <td><?= $no++; ?></td>
-                            <td><?= date('d M Y', strtotime($row['tanggal'])); ?></td>
+                            <td><?= isset($row['tanggal']) ? date('d M Y', strtotime($row['tanggal'])) : date('d M Y'); ?></td>
                             <td><strong><?= htmlspecialchars($row['alat']); ?></strong></td>
                             <td><?= htmlspecialchars($row['durasi']); ?> Hari</td>
                             <td class="text-success fw-bold">Rp <?= number_format($row['total'], 0, ',', '.'); ?></td>
