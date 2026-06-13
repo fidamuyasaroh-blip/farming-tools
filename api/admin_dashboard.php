@@ -29,14 +29,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_alat'])) {
     $harga     = $_POST['harga'];
     $stok      = $_POST['stok'];
     $gambar    = $_POST['gambar'];
-    $deskripsi = $_POST['deskripsi']; // Menangkap deskripsi alat baru
+    $deskripsi = $_POST['deskripsi']; 
 
     $query_tambah = "INSERT INTO alat (nama_alat, harga, stok, gambar, deskripsi) VALUES ('$nama_alat', '$harga', '$stok', '$gambar', '$deskripsi')";
     
     if (mysqli_query($koneksi, $query_tambah)) {
         echo "<script>
             alert('Katalog Alat Pertanian Berhasil Ditambahkan!');
-            // Mengarahkan kembali dan otomatis membuka tab 'tambah-alat' setelah reload
             window.location.href = 'admin_dashboard.php?tab=tambah-alat';
         </script>";
         exit();
@@ -71,6 +70,8 @@ $tab_aktif = $_GET['tab'] ?? 'transaksi';
         .card-custom { background: white; border-radius: 15px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .nav-tabs .nav-link { border: none; color: #6c757d; font-weight: 600; padding: 12px 20px; }
         .nav-tabs .nav-link.active { color: #198754; border-bottom: 3px solid #198754; background: none; }
+        .img-link { font-size: 11px; text-decoration: none; color: #0d6efd; display: block; margin-top: 4px; word-break: break-all; max-width: 120px; }
+        .img-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -93,7 +94,7 @@ $tab_aktif = $_GET['tab'] ?? 'transaksi';
 <div class="main-content">
     <div class="mb-4">
         <h2 class="fw-bold text-dark">Dashboard Panel Admin</h2>
-        <p class="text-muted">Kelola seluruh operasional TERRALEASE dalam satu tempat.</p>
+        <p class="text-muted">Kelola transaksi penyewaan user dan tambahkan katalog produk baru dalam satu file.</p>
     </div>
 
     <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
@@ -165,7 +166,7 @@ $tab_aktif = $_GET['tab'] ?? 'transaksi';
                             <?php else : ?>
                                 <tr>
                                     <td colspan="9" class="text-center py-4 text-muted">Belum ada transaksi masuk dari user.</td>
-                                endwhile; ?>
+                                </tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
@@ -195,7 +196,7 @@ $tab_aktif = $_GET['tab'] ?? 'transaksi';
                             </div>
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">URL Link Gambar</label>
-                                <input type="text" name="gambar" class="form-control" placeholder="https://..." required>
+                                <input type="text" name="gambar" class="form-control" placeholder="Masukkan URL gambar lengkap disini..." required>
                             </div>
                             
                             <div class="mb-3">
@@ -218,7 +219,7 @@ $tab_aktif = $_GET['tab'] ?? 'transaksi';
                                 <thead class="table-light">
                                     <tr>
                                         <th>No</th>
-                                        <th>Gambar</th>
+                                        <th style="width: 140px;">Gambar Alat</th>
                                         <th>Nama & Deskripsi</th>
                                         <th>Harga</th>
                                         <th>Stok</th>
@@ -226,15 +227,21 @@ $tab_aktif = $_GET['tab'] ?? 'transaksi';
                                 </thead>
                                 <tbody>
                                     <?php if (mysqli_num_rows($result_alat) > 0) : ?>
-                                        <?php $no = 1; while($row = mysqli_fetch_assoc($result_alat)) : ?>
+                                        <?php $no = 1; while($row = mysqli_fetch_assoc($result_alat)) : 
+                                            $url_gambar = htmlspecialchars($row['gambar']);
+                                        ?>
                                             <tr>
                                                 <td><?= $no++; ?></td>
                                                 <td>
-                                                    <img src="<?= htmlspecialchars($row['gambar']); ?>" width="55" height="45" class="rounded object-fit-cover" onerror="this.src='https://placehold.co/55x45?text=Alat'">
+                                                    <img src="<?= $url_gambar; ?>" width="100" height="75" class="rounded object-fit-cover shadow-sm border" onerror="this.src='https://placehold.co/100x75?text=No+Image'">
+                                                    
+                                                    <a href="<?= $url_gambar; ?>" target="_blank" class="img-link">
+                                                        🔗 Buka Link Gambar
+                                                    </a>
                                                 </td>
                                                 <td>
                                                     <strong><?= htmlspecialchars($row['nama_alat']); ?></strong><br>
-                                                    <small class="text-muted d-block text-truncate" style="max-width: 220px;">
+                                                    <small class="text-muted d-block text-wrap" style="max-width: 220px; font-size: 13px;">
                                                         <?= htmlspecialchars($row['deskripsi'] ?? 'Tidak ada deskripsi.'); ?>
                                                     </small>
                                                 </td>

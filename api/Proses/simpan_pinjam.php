@@ -11,38 +11,19 @@ if (!$username) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Menangkap data dari form pembayaran.php
+    // Menangkap data asli dari form pembayaran.php
     $id_alat   = $_POST['id_alat'] ?? 0;
     $nama_alat = $_POST['nama_alat'] ?? 'Alat Pertanian'; 
     $durasi    = $_POST['durasi'] ?? 1;
-    $total     = $_POST['total'] ?? 0;
+    $total     = $_POST['total'] ?? 0; // Mengambil angka nominal dari form
     $metode    = $_POST['metode'] ?? 'BCA';
     $tanggal   = date('Y-m-d');
     $status    = 'belum lunas';
 
-    // 1. Ambil semua nama kolom asli yang ada di tabel 'peminjaman' kamu
-    $kolom_asli = [];
-    $result_fields = mysqli_query($koneksi, "SHOW COLUMNS FROM peminjaman");
-    while ($field = mysqli_fetch_assoc($result_fields)) {
-        $kolom_asli[] = strtolower($field['Field']);
-    }
-
-    // 2. Deteksi otomatis nama kolom untuk ALAT (alat ATAU nama_alat)
-    $kolom_alat = 'nama_alat'; // default
-    if (in_array('alat', $kolom_asli)) {
-        $kolom_alat = 'alat';
-    }
-
-    // 3. Deteksi otomatis nama kolom untuk HARGA (total, total_harga, ATAU harga)
-    $kolom_harga = 'total'; // default awal
-    if (in_array('total_harga', $kolom_asli)) {
-        $kolom_harga = 'total_harga';
-    } elseif (in_array('harga', $kolom_asli)) {
-        $kolom_harga = 'harga';
-    }
-
-    // 4. Susun query dinamis berdasarkan kolom yang beneran ada di phpMyAdmin kamu
-    $query = "INSERT INTO peminjaman (username, $kolom_alat, durasi, $kolom_harga, metode, status, tanggal) 
+    // =========================================================================
+    // QUERY PAS: Langsung menembak nama_alat dan total_harga yang terbukti valid
+    // =========================================================================
+    $query = "INSERT INTO peminjaman (username, nama_alat, durasi, total_harga, metode, status, tanggal) 
               VALUES ('$username', '$nama_alat', '$durasi', '$total', '$metode', '$status', '$tanggal')";
 
     // Jalankan query-nya
@@ -55,14 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </script>";
         exit();
     } else {
-        // Jika masih gagal (kemungkinan tipe data atau alasan lain), cetak debug rapi
-        $error_msg = mysqli_error($koneksi);
-        echo "<div style='font-family: sans-serif; padding: 20px; background: #fff5f5; border: 1px solid #ffc9c9; border-radius: 8px; margin: 20px;'>";
-        echo "<h3 style='color: #c53030;'>❌ Masih Terjadi Kendala Database</h3>";
-        echo "<p><strong>Pesan Eror:</strong> <code>$error_msg</code></p>";
-        echo "<p><strong>Kolom yang terdeteksi di tabelmu:</strong> " . implode(', ', $kolom_asli) . "</p>";
-        echo "</div>";
-        exit();
+        // Tampilkan pesan jika ada error struktur lainnya
+        die("Gagal menyimpan ke database. Error: " . mysqli_error($koneksi));
     }
 
 } else {
