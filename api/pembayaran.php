@@ -1,4 +1,5 @@
 <?php
+// Jalur koneksi aman untuk Vercel & Localhost
 include 'koneksi.php';
 
 // Proteksi Cookie status login
@@ -12,13 +13,9 @@ if (!$username) {
     exit();
 }
 
-// PERBAIKAN UTAMA: Menangkap data menggunakan $_POST dari form pinjam.php
+// 1. TANGKAP DATA AWAL DARI KATALOG / FORM SEBELUMNYA
 $id_alat = isset($_POST['id']) ? $_POST['id'] : (isset($_GET['id']) ? $_GET['id'] : 0);
 $durasi  = isset($_POST['hari']) ? $_POST['hari'] : (isset($_POST['lama_sewa']) ? $_POST['lama_sewa'] : 1);
-
-if(isset($_POST['hari'])) {
-    $durasi = $_POST['hari'];
-}
 
 // Ambil data alat dari database berdasarkan ID
 $query = mysqli_query($koneksi, "SELECT * FROM alat WHERE id = '$id_alat'");
@@ -33,8 +30,73 @@ $alat = $data['nama_alat'];
 $harga_per_hari = $data['harga'];
 $total_bayar = $durasi * $harga_per_hari;
 
-// Deteksi otomatis folder path untuk action form (Aman untuk local & Vercel)
-$action_path = (strpos($_SERVER['REQUEST_URI'], '/api/') !== false) ? 'simpan_pinjam.php' : 'Proses/simpan_pinjam.php';
+
+// =========================================================================
+// LOGIKA UTAMA: PROSES SIMPAN LANGSUNG DI TEMPAT SAAT TOMBOL DIKLIK
+// =========================================================================
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['proses_konfirmasi'])) {
+    
+    // Ambil data pasti dari input hidden di bawah
+    $id_alat_final   = $_POST['id_alat'];
+    $nama_alat_final = $_POST['nama_alat']; 
+    $durasi_final    = $_POST['durasi'];
+    $total_final     = $_POST['total']; 
+    $metode_final    = $_POST['metode'] ?? 'Transfer BCA';
+    $tanggal_final   = date('Y-m-d');
+    $status_final    = 'belum lunas';
+
+    // Cek kolom yang tersedia di tabel database kamu
+    $kolom_db = [];
+    $result_fields = mysqli_query($koneksi, "SHOW COLUMNS FROM peminjaman");
+    while ($field = mysqli_fetch_assoc($result_fields)) {
+        $kolom_db[] = strtolower($field['Field']);
+    }
+
+    $insert_data = [];
+    if (in_array('username', $kolom_db))   $insert_data['username'] = "'$username'";
+    
+    // Sinkronisasi kolom Nama Alat
+    if (in_array('nama_alat', $kolom_db)) {
+        $insert_data['nama_alat'] = "'$nama_alat_final'";
+    } elseif (in_array('alat', $kolom_db)) {
+        $insert_data['alat'] = "'$nama_alat_final'";
+    }
+
+    if (in_array('durasi', $kolom_db))     $insert_data['durasi'] = "'$durasi_final'";
+
+    // Sinkronisasi kolom Harga
+    if (in_array('total_harga', $kolom_db)) {
+        $insert_data['total_harga'] = "'$total_final'";
+    } elseif (in_array('total', $kolom_db)) {
+        $insert_data['total'] = "'$total_final'";
+    } elseif (in_array('harga', $kolom_db)) {
+        $insert_data['harga'] = "'$total_final'";
+    }
+
+    if (in_array('metode', $kolom_db))     $insert_data['metode'] = "'$metode_final'";
+    if (in_array('status', $kolom_db))     $insert_data['status'] = "'$status_final'";
+    if (in_array('tanggal', $kolom_db))    $insert_data['tanggal'] = "'$tanggal_final'";
+
+    $nama_nama_kolom = implode(", ", array_keys($insert_data));
+    $nilai_nilai_kolom = implode(", ", array_values($insert_data));
+
+    $query_insert = "INSERT INTO peminjaman ($nama_nama_kolom) VALUES ($nilai_nilai_kolom)";
+
+    if (mysqli_query($koneksi, $query_insert)) {
+        // Potong stok alat
+        if ($id_alat_final > 0) {
+            mysqli_query($koneksi, "UPDATE alat SET stok = stok - 1 WHERE id = '$id_alat_final'");
+        }
+        
+        echo "<script>
+            alert('Pemesanan Berhasil Disimpan!');
+            window.location.href = 'riwayat_pemesanan.php';
+        </script>";
+        exit();
+    } else {
+        echo "<script>alert('Gagal menyimpan: " . mysqli_error($koneksi) . "');</script>";
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -68,8 +130,10 @@ $action_path = (strpos($_SERVER['REQUEST_URI'], '/api/') !== false) ? 'simpan_pi
             </div>
         </div>
 
-        <form action="<?= $action_path; ?>" method="POST">
+        <form action="" method="POST">
             
+            <input type="hidden" name="proses_konfirmasi" value="1">
+
             <input type="hidden" name="id_alat" value="<?= $id_alat; ?>">
             <input type="hidden" name="nama_alat" value="<?= htmlspecialchars($alat); ?>"> 
             <input type="hidden" name="durasi" value="<?= $durasi; ?>">
@@ -78,7 +142,7 @@ $action_path = (strpos($_SERVER['REQUEST_URI'], '/api/') !== false) ? 'simpan_pi
             <h5 class="mb-3 fw-semibold">Pilih Metode Pembayaran</h5>
 
             <label class="w-100 mb-2">
-                <input type="radio" name="metode" value="Transfer BCA" required checked>
+                <input type="radio" name="metode" value="Transfer BCA" checked>
                 <div class="method-box">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/5/5c/Bank_Central_Asia.svg" width="60" class="me-3">
                     <div>
@@ -89,7 +153,7 @@ $action_path = (strpos($_SERVER['REQUEST_URI'], '/api/') !== false) ? 'simpan_pi
             </label>
 
             <label class="w-100 mb-2">
-                <input type="radio" name="metode" value="Transfer Mandiri" required>
+                <input type="radio" name="metode" value="Transfer Mandiri">
                 <div class="method-box">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/a/ad/Bank_Mandiri_logo_2016.svg" width="60" class="me-3">
                     <div>
@@ -100,7 +164,7 @@ $action_path = (strpos($_SERVER['REQUEST_URI'], '/api/') !== false) ? 'simpan_pi
             </label>
 
             <label class="w-100 mb-3">
-                <input type="radio" name="metode" value="Gopay" required>
+                <input type="radio" name="metode" value="Gopay">
                 <div class="method-box">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/8/86/Gopay_logo.svg" width="60" class="me-3">
                     <div>
