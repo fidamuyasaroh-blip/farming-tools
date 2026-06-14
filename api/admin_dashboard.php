@@ -70,8 +70,8 @@ $tab_aktif = $_GET['tab'] ?? 'transaksi';
         .card-custom { background: white; border-radius: 15px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .nav-tabs .nav-link { border: none; color: #6c757d; font-weight: 600; padding: 12px 20px; }
         .nav-tabs .nav-link.active { color: #198754; border-bottom: 3px solid #198754; background: none; }
-        .img-link { font-size: 11px; text-decoration: none; color: #0d6efd; display: block; margin-top: 4px; word-break: break-all; max-width: 120px; }
-        .img-link:hover { text-decoration: underline; }
+        .link-url-aktif { text-decoration: none; color: #0d6efd; font-weight: 600; font-size: 14px; }
+        .link-url-aktif:hover { text-decoration: underline; color: #0a58ca; }
     </style>
 </head>
 <body>
@@ -219,8 +219,7 @@ $tab_aktif = $_GET['tab'] ?? 'transaksi';
                                 <thead class="table-light">
                                     <tr>
                                         <th>No</th>
-                                        <th style="width: 140px;">Gambar Alat</th>
-                                        <th>Nama & Deskripsi</th>
+                                        <th>Link Gambar</th> <th>Nama & Deskripsi</th>
                                         <th>Harga</th>
                                         <th>Stok</th>
                                     </tr>
@@ -233,10 +232,8 @@ $tab_aktif = $_GET['tab'] ?? 'transaksi';
                                             <tr>
                                                 <td><?= $no++; ?></td>
                                                 <td>
-                                                    <img src="<?= $url_gambar; ?>" width="100" height="75" class="rounded object-fit-cover shadow-sm border" onerror="this.src='https://placehold.co/100x75?text=No+Image'">
-                                                    
-                                                    <a href="<?= $url_gambar; ?>" target="_blank" class="img-link">
-                                                        🔗 Buka Link Gambar
+                                                    <a href="<?= $url_gambar; ?>" target="_blank" class="link-url-aktif">
+                                                        🔗 Lihat Gambar
                                                     </a>
                                                 </td>
                                                 <td>
