@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_alat'])) {
     $nama_alat = $_POST['nama_alat'];
     $harga     = $_POST['harga'];
     $stok      = $_POST['stok'];
-    $gambar    = $_POST['gambar'];
+    $gambar    = $_POST['gambar']; // Menangkap link URL gambar (misal dari Google/Pinterest)
     $deskripsi = $_POST['deskripsi']; 
 
     $query_tambah = "INSERT INTO alat (nama_alat, harga, stok, gambar, deskripsi) VALUES ('$nama_alat', '$harga', '$stok', '$gambar', '$deskripsi')";
@@ -70,8 +70,7 @@ $tab_aktif = $_GET['tab'] ?? 'transaksi';
         .card-custom { background: white; border-radius: 15px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .nav-tabs .nav-link { border: none; color: #6c757d; font-weight: 600; padding: 12px 20px; }
         .nav-tabs .nav-link.active { color: #198754; border-bottom: 3px solid #198754; background: none; }
-        .link-url-aktif { text-decoration: none; color: #0d6efd; font-weight: 600; font-size: 14px; }
-        .link-url-aktif:hover { text-decoration: underline; color: #0a58ca; }
+        .img-preview-katalog { width: 110px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #dee2e6; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
@@ -112,6 +111,9 @@ $tab_aktif = $_GET['tab'] ?? 'transaksi';
 
     <div class="tab-content" id="adminTabsContent">
         
+        <!-- ========================================================================= -->
+        <!-- TEMPAT 1: TAB KELOLA TRANSAKSI USER -->
+        <!-- ========================================================================= -->
         <div class="tab-pane fade <?= $tab_aktif == 'transaksi' ? 'show active' : ''; ?>" id="transaksi-content" role="tabpanel">
             <div class="card card-custom p-4">
                 <h5 class="fw-bold mb-3 text-primary">Daftar Transaksi Masuk</h5>
@@ -174,8 +176,12 @@ $tab_aktif = $_GET['tab'] ?? 'transaksi';
             </div>
         </div>
 
+        <!-- ========================================================================= -->
+        <!-- TEMPAT 2: TAB TAMBAH ALAT BARU & KATALOG -->
+        <!-- ========================================================================= -->
         <div class="tab-pane fade <?= $tab_aktif == 'tambah-alat' ? 'show active' : ''; ?>" id="tambah-alat-content" role="tabpanel">
             <div class="row">
+                <!-- Form Tambah Alat (Kiri) -->
                 <div class="col-lg-5 mb-4">
                     <div class="card card-custom p-4">
                         <h5 class="fw-bold mb-3 text-success">Form Tambah Alat</h5>
@@ -196,7 +202,8 @@ $tab_aktif = $_GET['tab'] ?? 'transaksi';
                             </div>
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">URL Link Gambar</label>
-                                <input type="text" name="gambar" class="form-control" placeholder="Masukkan URL gambar lengkap disini..." required>
+                                <!-- Admin memasukkan alamat link gambar dari internet disini -->
+                                <input type="text" name="gambar" class="form-control" placeholder="Paste link gambar disini (https://...)" required>
                             </div>
                             
                             <div class="mb-3">
@@ -211,6 +218,7 @@ $tab_aktif = $_GET['tab'] ?? 'transaksi';
                     </div>
                 </div>
 
+                <!-- Tabel Katalog Mengambil Gambar Otomatis dari Link URL (Kanan) -->
                 <div class="col-lg-7 mb-4">
                     <div class="card card-custom p-4">
                         <h5 class="fw-bold mb-3">Daftar Katalog Alat Pertanian</h5>
@@ -219,7 +227,8 @@ $tab_aktif = $_GET['tab'] ?? 'transaksi';
                                 <thead class="table-light">
                                     <tr>
                                         <th>No</th>
-                                        <th>Link Gambar</th> <th>Nama & Deskripsi</th>
+                                        <th style="width: 130px;">Gambar Alat</th> 
+                                        <th>Nama & Deskripsi</th>
                                         <th>Harga</th>
                                         <th>Stok</th>
                                     </tr>
@@ -232,9 +241,8 @@ $tab_aktif = $_GET['tab'] ?? 'transaksi';
                                             <tr>
                                                 <td><?= $no++; ?></td>
                                                 <td>
-                                                    <a href="<?= $url_gambar; ?>" target="_blank" class="link-url-aktif">
-                                                        🔗 Lihat Gambar
-                                                    </a>
+                                                    <!-- KUNCI UTAMA: Tag IMG langsung memanggil isi link URL dari database -->
+                                                    <img src="<?= $url_gambar; ?>" class="img-preview-katalog" onerror="this.src='https://placehold.co/110x80?text=Link+Rusak'">
                                                 </td>
                                                 <td>
                                                     <strong><?= htmlspecialchars($row['nama_alat']); ?></strong><br>
