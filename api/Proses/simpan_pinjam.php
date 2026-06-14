@@ -1,112 +1,48 @@
 <?php
-// Jalur koneksi aman untuk Vercel & Localhost
-include dirname(__DIR__) . '/koneksi.php';
+require_once dirname(__DIR__) . '/koneksi.php';
 
-// Ambil data user dari Cookie
 $username = $_COOKIE['username'] ?? null;
 
 if (!$username) {
-    echo "<script>alert('Silakan login terlebih dahulu!'); window.location.href = '../login.php';</script>";
+    echo "<script>alert('Silakan login terlebih dahulu!'); window.location.href='../login.php';</script>";
     exit();
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    
-    // =========================================================================
-    // DETEKSI INPUT FORMsecara Agresif (Mencegah nama alat jadi default/Rp 0)
-    // =========================================================================
-    $id_alat   = $_POST['id_alat'] ?? ($_POST['id'] ?? 0);
-    
-    // Cek kemungkinan nama input untuk ALAT
-    $nama_alat = $_POST['nama_alat'] ?? ($_POST['alat'] ?? ($_POST['nama'] ?? 'Alat Pertanian')); 
-    
-    // Cek kemungkinan nama input untuk DURASI
-    $durasi    = $_POST['durasi'] ?? ($_POST['lama_sewa'] ?? 1);
-    
-    // Cek kemungkinan nama input untuk TOTAL BAYAR
-    $total     = $_POST['total'] ?? ($_POST['total_harga'] ?? ($_POST['harga'] ?? ($_POST['biaya'] ?? 0))); 
-    
-    // Cek kemungkinan nama input untuk METODE PEMBAYARAN
-    $metode    = $_POST['metode'] ?? ($_POST['metode_pembayaran'] ?? ($_POST['pembayaran'] ?? 'BCA'));
-    
-    $tanggal   = date('Y-m-d');
-    $status    = 'belum lunas';
-
-    // =========================================================================
-    // STEP 1: DETEKSI OTOMATIS STRUKTUR KOLOM TABEL PEMINJAMAN DI DATABASE
-    // =========================================================================
-    $kolom_db = [];
-    $result_fields = mysqli_query($koneksi, "SHOW COLUMNS FROM peminjaman");
-    while ($field = mysqli_fetch_assoc($result_fields)) {
-        $kolom_db[] = strtolower($field['Field']);
-    }
-
-    // =========================================================================
-    // STEP 2: PETAKAN DATA HANYA KE KOLOM YANG TERSEDIA DI DATABASE
-    // =========================================================================
-    $insert_data = [];
-
-    if (in_array('username', $kolom_db)) {
-        $insert_data['username'] = "'$username'";
-    }
-
-    // Isikan ke kolom alat yang tepat
-    if (in_array('nama_alat', $kolom_db)) {
-        $insert_data['nama_alat'] = "'$nama_alat'";
-    } elseif (in_array('alat', $kolom_db)) {
-        $insert_data['alat'] = "'$nama_alat'";
-    }
-
-    if (in_array('durasi', $kolom_db)) {
-        $insert_data['durasi'] = "'$durasi'";
-    }
-
-    // Isikan ke kolom keuangan yang tepat
-    if (in_array('total_harga', $kolom_db)) {
-        $insert_data['total_harga'] = "'$total'";
-    } elseif (in_array('total', $kolom_db)) {
-        $insert_data['total'] = "'$total'";
-    } elseif (in_array('harga', $kolom_db)) {
-        $insert_data['harga'] = "'$total'";
-    }
-
-    if (in_array('metode', $kolom_db)) {
-        $insert_data['metode'] = "'$metode'";
-    }
-
-    if (in_array('status', $kolom_db)) {
-        $insert_data['status'] = "'$status'";
-    }
-
-    if (in_array('tanggal', $kolom_db)) {
-        $insert_data['tanggal'] = "'$tanggal'";
-    }
-
-    // =========================================================================
-    // STEP 3: EKSEKUSI INSERT
-    // =========================================================================
-    $nama_nama_kolom = implode(", ", array_keys($insert_data));
-    $nilai_nilai_kolom = implode(", ", array_values($insert_data));
-
-    $query = "INSERT INTO peminjaman ($nama_nama_kolom) VALUES ($nilai_nilai_kolom)";
-
-    if (mysqli_query($koneksi, $query)) {
-        // Kurangi stok alat jika kolom id_alat valid
-        if ($id_alat > 0) {
-            mysqli_query($koneksi, "UPDATE alat SET stok = stok - 1 WHERE id = '$id_alat'");
-        }
-        
-        echo "<script>
-            alert('Pemesanan Berhasil Disimpan!');
-            window.location.href = '../riwayat_pemesanan.php';
-        </script>";
-        exit();
-    } else {
-        echo "Gagal menyimpan: " . mysqli_error($koneksi);
-    }
-
-} else {
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header("Location: ../daftar_alat.php");
     exit();
+}
+
+$id_alat   = (int)($_POST['id_alat']   ?? $_POST['id']   ?? 0);
+$nama_alat = trim($_POST['nama_alat']  ?? $_POST['alat'] ?? 'Alat Pertanian');
+$durasi    = (int)($_POST['durasi']    ?? $_POST['hari']  ?? 1);
+$total     = (float)($_POST['total']   ?? $_POST['total_harga'] ?? 0);
+$metode    = trim($_POST['metode']     ?? 'BCA');
+$tanggal   = date('Y-m-d');
+$status    = 'belum lunas';
+
+// Escape string untuk keamanan
+$username_esc  = mysqli_real_escape_string($koneksi, $username);
+$nama_alat_esc = mysqli_real_escape_string($koneksi, $nama_alat);
+$metode_esc    = mysqli_real_escape_string($koneksi, $metode);
+
+// Insert dengan kolom yang sudah pasti ada (sesuaikan nama kolom dengan skema DB kamu)
+// Kolom: username, nama_alat, durasi, total_bayar, metode_bayar, tanggal, status
+$query = "INSERT INTO peminjaman 
+            (username, nama_alat, durasi, total_bayar, metode_bayar, tanggal, status)
+          VALUES 
+            ('$username_esc', '$nama_alat_esc', '$durasi', '$total', '$metode_esc', '$tanggal', '$status')";
+
+if (mysqli_query($koneksi, $query)) {
+    // Kurangi stok
+    if ($id_alat > 0) {
+        $stmt_stok = mysqli_prepare($koneksi, "UPDATE alat SET stok = stok - 1 WHERE id = ? AND stok > 0");
+        mysqli_stmt_bind_param($stmt_stok, 'i', $id_alat);
+        mysqli_stmt_execute($stmt_stok);
+    }
+    echo "<script>alert('Pemesanan Berhasil!'); window.location.href='../riwayat_pemesanan.php';</script>";
+} else {
+    $err = mysqli_error($koneksi);
+    echo "<script>alert('Gagal menyimpan: $err'); window.location.href='../daftar_alat.php';</script>";
 }
 ?>

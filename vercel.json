@@ -6,8 +6,24 @@
   },
   "routes": [
     {
+      "src": "/api/Proses/(.*)\\.php",
+      "dest": "/api/Proses/$1.php"
+    },
+    {
       "src": "/api/(.*)\\.php",
       "dest": "/api/$1.php"
+    },
+    {
+      "src": "/img/(.*)",
+      "dest": "/img/$1"
+    },
+    {
+      "src": "/style\\.css",
+      "dest": "/style.css"
+    },
+    {
+      "src": "/script\\.js",
+      "dest": "/script.js"
     },
     {
       "src": "/(.*)",

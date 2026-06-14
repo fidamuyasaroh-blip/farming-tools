@@ -1,47 +1,41 @@
 <?php
-session_start(); 
-
-// PERBAIKAN 1: Gunakan __DIR__ agar path absolut dan tidak error di Vercel
 require_once __DIR__ . '/../koneksi.php';
 
-$username = $_POST['username'] ?? '';
-$email    = $_POST['email'] ?? '';
-$password = $_POST['password'] ?? '';
+$username = trim($_POST['username'] ?? '');
+$email    = trim($_POST['email']    ?? '');
+$password = trim($_POST['password'] ?? '');
 $role     = 'user';
 
-// Tambahkan pengaman agar input tidak merusak database (SQL Injection)
-$username = mysqli_real_escape_string($koneksi, $username);
-$email    = mysqli_real_escape_string($koneksi, $email);
-$password = mysqli_real_escape_string($koneksi, $password);
+if (empty($username) || empty($email) || empty($password)) {
+    echo "<script>alert('Semua field wajib diisi!'); window.location.href='../register.php';</script>";
+    exit();
+}
 
-// Validasi panjang password
 if (strlen($password) < 8) {
-    echo "<script>
-            alert('Password harus minimal 8 karakter!');
-            window.location.href='../register.php';
-          </script>";
+    echo "<script>alert('Password harus minimal 8 karakter!'); window.location.href='../register.php';</script>";
     exit();
 }
 
-// Cek username sudah dipakai belum
-$cek = mysqli_query($koneksi, "SELECT * FROM users WHERE username='$username'");
-if (mysqli_num_rows($cek) > 0) {
-    echo "<script>
-            alert('Username sudah digunakan, pilih username lain!');
-            window.location.href='../register.php';
-          </script>";
+// Cek username sudah dipakai
+$stmt_cek = mysqli_prepare($koneksi, "SELECT id FROM users WHERE username = ?");
+mysqli_stmt_bind_param($stmt_cek, 's', $username);
+mysqli_stmt_execute($stmt_cek);
+mysqli_stmt_store_result($stmt_cek);
+
+if (mysqli_stmt_num_rows($stmt_cek) > 0) {
+    echo "<script>alert('Username sudah digunakan, pilih username lain!'); window.location.href='../register.php';</script>";
     exit();
 }
 
-$query = "INSERT INTO users (username, email, password, role) VALUES ('$username', '$email', '$password', '$role')";
-$result = mysqli_query($koneksi, $query);
+// Hash password sebelum disimpan
+$hashed = password_hash($password, PASSWORD_DEFAULT);
 
-if ($result) {
-    echo "<script>
-            alert('Registrasi Berhasil! Silakan Login.');
-            window.location.href='../login.php';
-          </script>";
+$stmt_ins = mysqli_prepare($koneksi, "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)");
+mysqli_stmt_bind_param($stmt_ins, 'ssss', $username, $email, $hashed, $role);
+
+if (mysqli_stmt_execute($stmt_ins)) {
+    echo "<script>alert('Registrasi Berhasil! Silakan Login.'); window.location.href='../login.php';</script>";
 } else {
-    echo "Registrasi Gagal: " . mysqli_error($koneksi);
+    echo "<script>alert('Registrasi Gagal, coba lagi.'); window.location.href='../register.php';</script>";
 }
 ?>

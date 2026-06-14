@@ -1,27 +1,28 @@
 <?php
-// Ganti session_start() dengan pengecekan Cookie
 include 'koneksi.php';
 
-// Cek apakah cookie username ada
 if (!isset($_COOKIE['username'])) {
-    // Jika tidak ada cookie, berarti belum login, lempar ke login.php
-    header("Location: /api/login.php");
+    header("Location: login.php");
     exit();
 }
 
-// Ambil data dari Cookie (bukan dari Session)
 $username = $_COOKIE['username'];
+$username_esc = mysqli_real_escape_string($koneksi, $username);
 
 // Total peminjaman
-$q_total_pinjam = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM peminjaman WHERE username='$username'");
-$total_pinjam = mysqli_fetch_assoc($q_total_pinjam)['total'] ?? 0;
+$q_total_pinjam = mysqli_query($koneksi, "SELECT COUNT(*) as total FROM peminjaman WHERE username='$username_esc'");
+$total_pinjam   = mysqli_fetch_assoc($q_total_pinjam)['total'] ?? 0;
 
-// Total pengeluaran
-$q_total = mysqli_query($koneksi, "SELECT SUM(total_bayar) as total FROM peminjaman WHERE username='$username'");
-$total_pengeluaran = mysqli_fetch_assoc($q_total)['total'] ?? 0;
+// Total pengeluaran — coba kolom total_bayar, fallback ke total
+$total_pengeluaran = 0;
+$q_total = mysqli_query($koneksi, "SELECT SUM(total_bayar) as total FROM peminjaman WHERE username='$username_esc'");
+if ($q_total) {
+    $row_total = mysqli_fetch_assoc($q_total);
+    $total_pengeluaran = $row_total['total'] ?? 0;
+}
 
-// Data riwayat
-$query = mysqli_query($koneksi, "SELECT * FROM peminjaman WHERE username='$username' ORDER BY tanggal DESC");
+// Riwayat peminjaman
+$query = mysqli_query($koneksi, "SELECT * FROM peminjaman WHERE username='$username_esc' ORDER BY tanggal DESC");
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -35,22 +36,10 @@ $query = mysqli_query($koneksi, "SELECT * FROM peminjaman WHERE username='$usern
         * { font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: #f0f4f8; padding-top: 80px; }
         .navbar { background-color: #2e7d32; }
-
-        .stat-card {
-            border: none;
-            border-radius: 16px;
-            padding: 24px;
-            transition: 0.3s;
-        }
+        .stat-card { border: none; border-radius: 16px; padding: 24px; transition: 0.3s; }
         .stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
-
-        .card-shortcut {
-            border: none;
-            border-radius: 16px;
-            transition: 0.3s;
-        }
+        .card-shortcut { border: none; border-radius: 16px; transition: 0.3s; }
         .card-shortcut:hover { transform: translateY(-5px); box-shadow: 0 10px 24px rgba(0,0,0,0.15); }
-
         .table-card { border: none; border-radius: 16px; overflow: hidden; }
         .badge-metode { font-size: 0.75rem; padding: 5px 12px; border-radius: 8px; }
     </style>
@@ -58,32 +47,23 @@ $query = mysqli_query($koneksi, "SELECT * FROM peminjaman WHERE username='$usern
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark shadow-sm fixed-top">
         <div class="container">
-            <a class="navbar-brand fw-bold fs-4" href="index.html">🌿 TERRALEASE</a>
+            <a class="navbar-brand fw-bold fs-4" href="/index.html">🌿 TERRALEASE</a>
             <div class="collapse navbar-collapse show">
                 <ul class="navbar-nav ms-auto align-items-center gap-2">
-                    <li class="nav-item">
-                        <a class="nav-link text-white fw-semibold" href="daftar_alat.php">Katalog</a>
-                    </li>
-                    <li class="nav-item">
-                        <span class="nav-link text-light">Hai, <strong><?= $username; ?></strong></span>
-                    </li>
-                    <li class="nav-item">
-                        <a href="Proses/logout.php" class="btn btn-outline-warning btn-sm fw-bold px-3">Logout</a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link text-white fw-semibold" href="daftar_alat.php">Katalog</a></li>
+                    <li class="nav-item"><span class="nav-link text-light">Hai, <strong><?= htmlspecialchars($username); ?></strong></span></li>
+                    <li class="nav-item"><a href="Proses/logout.php" class="btn btn-outline-warning btn-sm fw-bold px-3">Logout</a></li>
                 </ul>
             </div>
         </div>
     </nav>
 
     <div class="container mb-5">
-
-        <!-- GREETING -->
         <div class="mb-4">
-            <div style="font-size: 1.5rem; font-weight: 800; color: #000000;">Selamat Datang, <?= $username ?>! 👋</div>
+            <div style="font-size: 1.5rem; font-weight: 800;">Selamat Datang, <?= htmlspecialchars($username) ?>! 👋</div>
             <div style="color: #6b7280; font-size: 0.9rem;">Kelola penyewaan alat pertanianmu dari sini.</div>
         </div>
 
-        <!-- STAT CARDS -->
         <div class="row g-3 mb-4">
             <div class="col-md-6">
                 <div class="stat-card shadow-sm" style="background: linear-gradient(135deg, #2e7d32, #66bb6a);">
@@ -105,7 +85,6 @@ $query = mysqli_query($koneksi, "SELECT * FROM peminjaman WHERE username='$usern
             </div>
         </div>
 
-        <!-- SHORTCUT -->
         <div class="row g-3 mb-4">
             <div class="col-md-6">
                 <a href="daftar_alat.php" class="text-decoration-none">
@@ -127,69 +106,69 @@ $query = mysqli_query($koneksi, "SELECT * FROM peminjaman WHERE username='$usern
             </div>
         </div>
 
-       <!-- RIWAYAT -->
-<h5 class="fw-bold mb-3">📋 Riwayat Peminjaman Saya</h5>
-<div class="card table-card shadow-sm">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-dark">
-                    <tr>
-                        <th class="ps-4">No</th>
-                        <th>Nama Alat</th>
-                        <th>Durasi</th>
-                        <th>Total Bayar</th>
-                        <th>Metode</th>
-                        <th>Tanggal</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (mysqli_num_rows($query) > 0): ?>
-                        <?php $no = 1; while($row = mysqli_fetch_assoc($query)): ?>
-                        <tr>
-                            <td class="ps-4"><?= $no++; ?></td>
-                            <td class="fw-bold"><?= htmlspecialchars($row['nama_alat']); ?></td>
-                            <td><?= $row['durasi']; ?> hari</td>
-                            <td class="text-success fw-bold">Rp <?= number_format($row['total_bayar'], 0, ',', '.'); ?></td>
-                            <td>
-                                <?php
-                                $metode = $row['metode_bayar'];
-                                $warna = match($metode) {
-                                    'BCA'   => 'bg-primary',
-                                    'DANA'  => 'bg-info',
-                                    'GOPAY' => 'bg-success',
-                                    default => 'bg-secondary'
-                                };
-                                ?>
-                                <span class="badge <?= $warna; ?> badge-metode"><?= $metode; ?></span>
-                            </td>
-                            <td class="text-muted small"><?= date('d M Y, H:i', strtotime($row['tanggal'])); ?></td>
-                            <td>
-                                <?php 
-                                if (isset($row['status'])) {
-                                    if ($row['status'] == 'lunas') {
-                                        echo '<span class="badge bg-success">Sukses ✓</span>';
-                                    } else {
-                                        // Jika belum lunas, otomatis dianggap Gagal/Belum Berhasil sesuai request
-                                        echo '<span class="badge bg-danger">Gagal ❌</span>';
-                                    }
-                                }
-                                ?>
-                            </td>
-                        </tr>
-                        <?php endwhile; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="7" class="text-center py-5 text-muted">
-                                <div style="font-size: 3rem;">📭</div>
-                                <p class="mt-2">Kamu belum pernah meminjam alat.</p>
-                                <a href="api/daftar_alat.php" class="btn btn-success btn-sm px-4">Mulai Sewa Sekarang</a>
-                            </td>
-                        </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+        <h5 class="fw-bold mb-3">📋 Riwayat Peminjaman Saya</h5>
+        <div class="card table-card shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="ps-4">No</th>
+                                <th>Nama Alat</th>
+                                <th>Durasi</th>
+                                <th>Total Bayar</th>
+                                <th>Metode</th>
+                                <th>Tanggal</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if ($query && mysqli_num_rows($query) > 0): ?>
+                                <?php $no = 1; while ($row = mysqli_fetch_assoc($query)): ?>
+                                <tr>
+                                    <td class="ps-4"><?= $no++; ?></td>
+                                    <td class="fw-bold"><?= htmlspecialchars($row['nama_alat'] ?? $row['alat'] ?? '-'); ?></td>
+                                    <td><?= (int)($row['durasi'] ?? 0); ?> hari</td>
+                                    <td class="text-success fw-bold">Rp <?= number_format($row['total_bayar'] ?? $row['total'] ?? 0, 0, ',', '.'); ?></td>
+                                    <td>
+                                        <?php
+                                        $metode = $row['metode_bayar'] ?? $row['metode'] ?? 'BCA';
+                                        $warna  = match(strtoupper($metode)) {
+                                            'BCA'            => 'bg-primary',
+                                            'DANA'           => 'bg-info',
+                                            'GOPAY'          => 'bg-success',
+                                            'TRANSFER MANDIRI' => 'bg-warning text-dark',
+                                            default          => 'bg-secondary'
+                                        };
+                                        ?>
+                                        <span class="badge <?= $warna; ?> badge-metode"><?= htmlspecialchars($metode); ?></span>
+                                    </td>
+                                    <td class="text-muted small"><?= date('d M Y', strtotime($row['tanggal'] ?? 'now')); ?></td>
+                                    <td>
+                                        <?php if (strtolower($row['status'] ?? '') === 'lunas'): ?>
+                                            <span class="badge bg-success">Sukses ✓</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-warning text-dark">Menunggu</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="7" class="text-center py-5 text-muted">
+                                        <div style="font-size: 3rem;">📭</div>
+                                        <p class="mt-2">Kamu belum pernah meminjam alat.</p>
+                                        <a href="daftar_alat.php" class="btn btn-success btn-sm px-4">Mulai Sewa Sekarang</a>
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

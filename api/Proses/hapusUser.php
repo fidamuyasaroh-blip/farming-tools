@@ -1,19 +1,20 @@
 <?php
-session_start();
-include '../koneksi.php';
+require_once __DIR__ . '/../koneksi.php';
 
-// Proteksi admin
-if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
-    header("Location: login.php");
+// Proteksi: hanya admin yang boleh hapus user
+if (!isset($_COOKIE['role']) || $_COOKIE['role'] !== 'admin') {
+    header("Location: ../login.php");
     exit();
 }
 
-$id = $_GET['id'] ?? 0;
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-if ($id) {
-    mysqli_query($koneksi, "DELETE FROM users WHERE id='$id'");
+if ($id > 0) {
+    $stmt = mysqli_prepare($koneksi, "DELETE FROM users WHERE id = ?");
+    mysqli_stmt_bind_param($stmt, 'i', $id);
+    mysqli_stmt_execute($stmt);
 }
 
-header("Location: kelola_user.php");
+header("Location: ../kelola_user.php");
 exit();
 ?>

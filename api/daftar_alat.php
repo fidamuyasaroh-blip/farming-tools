@@ -1,28 +1,20 @@
 <?php
-// Menggunakan koneksi dan mengecek login via Cookie agar stabil di Vercel
 include 'koneksi.php';
 
 if (!isset($_COOKIE['username'])) {
     setcookie("redirect_after_login", "daftar_alat.php", time() + 3600, "/");
-    echo "<script>
-        alert('Maaf, Anda harus login terlebih dahulu untuk mengakses katalog!');
-        window.location.href = 'login.php';
-    </script>";
+    echo "<script>alert('Maaf, Anda harus login terlebih dahulu!'); window.location.href='login.php';</script>";
     exit();
 }
 
-$username = $_COOKIE['username'];
-$role = $_COOKIE['role'] ?? 'user';
+$username = htmlspecialchars($_COOKIE['username']);
+$role     = $_COOKIE['role'] ?? 'user';
 
-// Ambil data alat dari database
-$query = "SELECT * FROM alat";
-$result = mysqli_query($koneksi, $query);
-
+$result = mysqli_query($koneksi, "SELECT * FROM alat ORDER BY id ASC");
 if (!$result) {
     die("Query Error: " . mysqli_error($koneksi));
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -41,19 +33,19 @@ if (!$result) {
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
-            height: 3rem; 
+            height: 3rem;
         }
     </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark shadow-sm fixed-top" style="background-color: #2e7d32;">
         <div class="container">
-            <a class="navbar-brand fw-bold fs-3" href="../index.html">TERRALEASE</a>
-            <div class="collapse navbar-collapse" id="navbarNav">
+            <a class="navbar-brand fw-bold fs-3" href="/index.html">TERRALEASE</a>
+            <div class="collapse navbar-collapse">
                 <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item"><a class="nav-link text-white fw-semibold px-3" href="../index.html">Beranda</a></li>
+                    <li class="nav-item"><a class="nav-link text-white fw-semibold px-3" href="/index.html">Beranda</a></li>
                     <li class="nav-item">
-                        <span class="nav-link text-light me-2">Halo, <strong><?= htmlspecialchars($username); ?></strong></span>
+                        <span class="nav-link text-light me-2">Halo, <strong><?= $username; ?></strong></span>
                     </li>
                     <li class="nav-item">
                         <a class="btn btn-outline-warning btn-sm fw-bold px-3" href="Proses/logout.php">Logout</a>
@@ -64,7 +56,7 @@ if (!$result) {
     </nav>
 
     <div class="container mt-3">
-        <?php if ($role == 'admin'): ?>
+        <?php if ($role === 'admin'): ?>
             <a href="admin_dashboard.php" class="btn btn-outline-success btn-sm px-3">← Dashboard Admin</a>
         <?php else: ?>
             <a href="dashboard_user.php" class="btn btn-outline-success btn-sm px-3">← Dashboard User</a>
@@ -79,32 +71,22 @@ if (!$result) {
         </div>
 
         <div class="row g-4">
-            <?php if (mysqli_num_rows($result) > 0) : ?>
-                <?php while($row = mysqli_fetch_assoc($result)) : 
-                    
-                    // --- LOGIKA PERBAIKAN PATH GAMBAR ---
-                    $nama_file = $row['gambar'];
-                    
-                    // Hilangkan embel-embel folder bawaan database agar tidak dobel path
-                    $nama_file = str_replace('../', '', $nama_file);
-                    $nama_file = str_replace('img/', '', $nama_file);
-                    
-                    // Fallback manual berdasarkan nama alat jika nama file di database berbeda
-                    if ($row['nama_alat'] == 'Seeder') $nama_file = 'seeder.jpg';
-                    if ($row['nama_alat'] == 'Fertilizer Spreader') $nama_file = 'Fertilizer-Spreader.jpg';
-                    if ($row['nama_alat'] == 'Rotavator') $nama_file = 'Rotavator_1_63037605e0.jpg';
-                    if ($row['nama_alat'] == 'Cultivator') $nama_file = 'Cultivator.jpg';
-                    if ($row['nama_alat'] == 'Mesin Modern') $nama_file = 'Mesin-pertanian-modern.jpg';
-                    if ($row['nama_alat'] == 'Combine Harvester') $nama_file = 'combine-harvester.jpg'; // Tambahan untuk Combine Harvester kamu
+            <?php if (mysqli_num_rows($result) > 0): ?>
+                <?php while ($row = mysqli_fetch_assoc($result)):
+                    // Gambar bisa berupa URL penuh (https://...) atau nama file lokal
+                    $gambar = $row['gambar'];
+                    if (filter_var($gambar, FILTER_VALIDATE_URL)) {
+                        $src_gambar = htmlspecialchars($gambar);
+                    } else {
+                        $src_gambar = '../img/' . htmlspecialchars($gambar);
+                    }
                 ?>
                 <div class="col-md-6 col-lg-4">
                     <div class="card shadow-sm">
-                        
-                        <img src="../img/<?= htmlspecialchars($nama_file); ?>" 
-                             class="card-img-top" 
+                        <img src="<?= $src_gambar; ?>"
+                             class="card-img-top"
                              alt="<?= htmlspecialchars($row['nama_alat']); ?>"
                              onerror="this.onerror=null;this.src='https://placehold.co/600x400?text=Gambar+Tidak+Ada';">
-                             
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title fw-bold mb-1 text-dark"><?= htmlspecialchars($row['nama_alat']); ?></h5>
                             <p class="card-text text-muted small text-description mb-3">
@@ -115,17 +97,17 @@ if (!$result) {
                                     Rp <?= number_format($row['harga'], 0, ',', '.'); ?> <span class="text-muted small fw-normal">/ hari</span>
                                 </p>
                                 <p class="card-text text-secondary mb-3" style="font-size: 0.85rem;">
-                                    Stok: <span class="badge bg-light text-dark border"><?= htmlspecialchars($row['stok']); ?> unit</span>
+                                    Stok: <span class="badge bg-light text-dark border"><?= (int)$row['stok']; ?> unit</span>
                                 </p>
-                                <a href="pinjam.php?id=<?= $row['id']; ?>" class="btn btn-success w-100 fw-bold py-2">Lihat Detail</a>
+                                <a href="pinjam.php?id=<?= (int)$row['id']; ?>" class="btn btn-success w-100 fw-bold py-2">Lihat Detail</a>
                             </div>
                         </div>
                     </div>
                 </div>
                 <?php endwhile; ?>
-            <?php else : ?>
+            <?php else: ?>
                 <div class="col-12 text-center py-5">
-                    <h4 class="text-muted">Belum ada alat di katalog database.</h4>
+                    <h4 class="text-muted">Belum ada alat di katalog.</h4>
                 </div>
             <?php endif; ?>
         </div>

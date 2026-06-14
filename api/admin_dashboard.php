@@ -1,60 +1,45 @@
 <?php
-// JALUR MUTLAK: Menggunakan __DIR__ agar aman di Vercel & Localhost
 require_once __DIR__ . '/koneksi.php';
 
-// Ambil data user dari Cookie
-$username = $_COOKIE['username'] ?? 'Admin';
+// Proteksi halaman admin
+if (!isset($_COOKIE['role']) || $_COOKIE['role'] !== 'admin') {
+    header("Location: login.php");
+    exit();
+}
 
-// =========================================================================
-// AKSI 1: PROSES MENGUBAH STATUS MENJADI LUNAS
-// =========================================================================
-if (isset($_GET['aksi']) && $_GET['aksi'] == 'set_lunas' && isset($_GET['id'])) {
-    $id_transaksi = $_GET['id'];
-    $query_update = "UPDATE peminjaman SET status = 'lunas' WHERE id = '$id_transaksi'";
-    
-    if (mysqli_query($koneksi, $query_update)) {
-        echo "<script>
-            alert('Status transaksi berhasil diperbarui menjadi LUNAS!');
-            window.location.href = 'admin_dashboard.php';
-        </script>";
+$username = htmlspecialchars($_COOKIE['username'] ?? 'Admin');
+
+// Aksi: Set Lunas
+if (isset($_GET['aksi']) && $_GET['aksi'] === 'set_lunas' && isset($_GET['id'])) {
+    $id = (int)$_GET['id'];
+    $stmt = mysqli_prepare($koneksi, "UPDATE peminjaman SET status = 'lunas' WHERE id = ?");
+    mysqli_stmt_bind_param($stmt, 'i', $id);
+    if (mysqli_stmt_execute($stmt)) {
+        echo "<script>alert('Status berhasil diperbarui menjadi LUNAS!'); window.location.href='admin_dashboard.php';</script>";
         exit();
     }
 }
 
-// =========================================================================
-// AKSI 2: PROSES TAMBAH KATALOG ALAT BARU + DESKRIPSI
-// =========================================================================
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_alat'])) {
-    $nama_alat = $_POST['nama_alat'];
-    $harga     = $_POST['harga'];
-    $stok      = $_POST['stok'];
-    $gambar    = $_POST['gambar']; // Menangkap link URL gambar (misal dari Google/Pinterest)
-    $deskripsi = $_POST['deskripsi']; 
+// Aksi: Tambah Alat
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tambah_alat'])) {
+    $nama_alat = mysqli_real_escape_string($koneksi, $_POST['nama_alat']);
+    $harga     = (float)$_POST['harga'];
+    $stok      = (int)$_POST['stok'];
+    $gambar    = mysqli_real_escape_string($koneksi, $_POST['gambar']);
+    $deskripsi = mysqli_real_escape_string($koneksi, $_POST['deskripsi']);
 
-    $query_tambah = "INSERT INTO alat (nama_alat, harga, stok, gambar, deskripsi) VALUES ('$nama_alat', '$harga', '$stok', '$gambar', '$deskripsi')";
-    
-    if (mysqli_query($koneksi, $query_tambah)) {
-        echo "<script>
-            alert('Katalog Alat Pertanian Berhasil Ditambahkan!');
-            window.location.href = 'admin_dashboard.php?tab=tambah-alat';
-        </script>";
+    $q = "INSERT INTO alat (nama_alat, harga, stok, gambar, deskripsi) VALUES ('$nama_alat', '$harga', '$stok', '$gambar', '$deskripsi')";
+    if (mysqli_query($koneksi, $q)) {
+        echo "<script>alert('Alat berhasil ditambahkan!'); window.location.href='admin_dashboard.php?tab=tambah-alat';</script>";
         exit();
     } else {
         echo "<script>alert('Gagal menambah alat: " . mysqli_error($koneksi) . "');</script>";
     }
 }
 
-// =========================================================================
-// QUERY DATA: Ambil data transaksi sewa dan katalog alat
-// =========================================================================
-$query_pesanan = "SELECT * FROM peminjaman ORDER BY id DESC";
-$result_pesanan = mysqli_query($koneksi, $query_pesanan);
-
-$query_tampil = "SELECT * FROM alat ORDER BY id DESC";
-$result_alat = mysqli_query($koneksi, $query_tampil);
-
-// Cek parameter tab aktif dari URL saat reload
-$tab_aktif = $_GET['tab'] ?? 'transaksi';
+$result_pesanan = mysqli_query($koneksi, "SELECT * FROM peminjaman ORDER BY id DESC");
+$result_alat    = mysqli_query($koneksi, "SELECT * FROM alat ORDER BY id DESC");
+$tab_aktif      = $_GET['tab'] ?? 'transaksi';
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -65,110 +50,102 @@ $tab_aktif = $_GET['tab'] ?? 'transaksi';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #f1f3f5; font-family: 'Plus Jakarta Sans', sans-serif; padding-bottom: 60px; }
-        .sidebar { height: 100vh; background: #212529; color: white; padding-top: 20px; position: fixed; width: 240px; }
-        .main-content { margin-left: 240px; padding: 40px; }
+        .sidebar { height: 100vh; background: #212529; color: white; padding-top: 20px; position: fixed; width: 220px; }
+        .main-content { margin-left: 220px; padding: 40px; }
         .card-custom { background: white; border-radius: 15px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .nav-tabs .nav-link { border: none; color: #6c757d; font-weight: 600; padding: 12px 20px; }
         .nav-tabs .nav-link.active { color: #198754; border-bottom: 3px solid #198754; background: none; }
-        .img-preview-katalog { width: 110px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #dee2e6; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .img-preview-katalog { width: 110px; height: 80px; object-fit: cover; border-radius: 8px; }
     </style>
 </head>
 <body>
 
 <div class="sidebar d-flex flex-column p-3">
-    <h4 class="text-center fw-bold mb-4 text-success">TERRALEASE</h4>
-    <hr>
+    <h5 class="text-center fw-bold mb-4 text-success">TERRALEASE</h5>
+    <hr class="border-secondary">
     <ul class="nav nav-pills flex-column mb-auto">
         <li class="nav-item mb-2">
-            <a href="admin_dashboard.php" class="nav-link active bg-success text-white fw-bold">Dashboard Admin</a>
+            <a href="admin_dashboard.php" class="nav-link bg-success text-white fw-bold">Dashboard</a>
         </li>
         <li class="nav-item mb-2">
-            <a href="daftar_alat.php" class="nav-link text-white">Lihat Katalog User</a>
+            <a href="kelola_user.php" class="nav-link text-white">Kelola User</a>
+        </li>
+        <li class="nav-item mb-2">
+            <a href="daftar_alat.php" class="nav-link text-white">Lihat Katalog</a>
+        </li>
+        <li class="nav-item mb-2">
+            <a href="Proses/logout.php" class="nav-link text-danger">Logout</a>
         </li>
     </ul>
-    <hr>
-    <div class="text-center text-muted small">Login Sebagai: <strong><?= htmlspecialchars($username); ?></strong></div>
+    <hr class="border-secondary">
+    <div class="text-center text-muted small">Admin: <strong><?= $username; ?></strong></div>
 </div>
 
 <div class="main-content">
     <div class="mb-4">
         <h2 class="fw-bold text-dark">Dashboard Panel Admin</h2>
-        <p class="text-muted">Kelola transaksi penyewaan user dan tambahkan katalog produk baru dalam satu file.</p>
+        <p class="text-muted">Kelola transaksi penyewaan dan katalog alat pertanian.</p>
     </div>
 
-    <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
+    <ul class="nav nav-tabs mb-4">
         <li class="nav-item">
-            <button class="nav-link <?= $tab_aktif == 'transaksi' ? 'active' : ''; ?>" id="transaksi-tab" data-bs-toggle="tab" data-bs-target="#transaksi-content" type="button" role="tab">
-                📋 Kelola Transaksi Sewa
+            <button class="nav-link <?= $tab_aktif === 'transaksi' ? 'active' : ''; ?>"
+                    data-bs-toggle="tab" data-bs-target="#transaksi-content" type="button">
+                📋 Kelola Transaksi
             </button>
         </li>
         <li class="nav-item">
-            <button class="nav-link <?= $tab_aktif == 'tambah-alat' ? 'active' : ''; ?>" id="tambah-alat-tab" data-bs-toggle="tab" data-bs-target="#tambah-alat-content" type="button" role="tab">
-                ➕ Tambah & Katalog Alat
+            <button class="nav-link <?= $tab_aktif === 'tambah-alat' ? 'active' : ''; ?>"
+                    data-bs-toggle="tab" data-bs-target="#tambah-alat-content" type="button">
+                ➕ Tambah Alat
             </button>
         </li>
     </ul>
 
-    <div class="tab-content" id="adminTabsContent">
-        
-        <!-- ========================================================================= -->
-        <!-- TEMPAT 1: TAB KELOLA TRANSAKSI USER -->
-        <!-- ========================================================================= -->
-        <div class="tab-pane fade <?= $tab_aktif == 'transaksi' ? 'show active' : ''; ?>" id="transaksi-content" role="tabpanel">
+    <div class="tab-content">
+        <!-- TAB TRANSAKSI -->
+        <div class="tab-pane fade <?= $tab_aktif === 'transaksi' ? 'show active' : ''; ?>" id="transaksi-content">
             <div class="card card-custom p-4">
-                <h5 class="fw-bold mb-3 text-primary">Daftar Transaksi Masuk</h5>
+                <h5 class="fw-bold mb-3 text-primary">Daftar Transaksi User</h5>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
                         <thead class="table-dark">
                             <tr>
-                                <th>No</th>
-                                <th>Tanggal</th>
-                                <th>User</th>
-                                <th>Alat Pertanian</th>
-                                <th>Durasi</th>
-                                <th>Total Bayar</th>
-                                <th>Metode</th>
-                                <th>Status</th>
-                                <th class="text-center">Aksi Admin</th>
+                                <th>No</th><th>Tanggal</th><th>User</th><th>Alat</th>
+                                <th>Durasi</th><th>Total Bayar</th><th>Metode</th><th>Status</th><th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if (mysqli_num_rows($result_pesanan) > 0) : ?>
-                                <?php $no = 1; while($row = mysqli_fetch_assoc($result_pesanan)) : 
-                                    $tampil_status = $row['status'] ?? 'belum lunas';
-                                ?>
-                                    <tr>
-                                        <td><?= $no++; ?></td>
-                                        <td><?= isset($row['tanggal']) ? date('d M Y', strtotime($row['tanggal'])) : date('d M Y'); ?></td>
-                                        <td><span class="badge bg-light text-dark border"><?= htmlspecialchars($row['username'] ?? 'User'); ?></span></td>
-                                        <td><strong><?= htmlspecialchars($row['alat'] ?? ($row['nama_alat'] ?? 'Alat')); ?></strong></td>
-                                        <td><?= htmlspecialchars($row['durasi'] ?? 1); ?> Hari</td>
-                                        <td class="text-success fw-bold">Rp <?= number_format($row['total_harga'] ?? ($row['total'] ?? 0), 0, ',', '.'); ?></td>
-                                        <td><small class="fw-semibold text-secondary"><?= htmlspecialchars($row['metode'] ?? 'BCA'); ?></small></td>
-                                        <td>
-                                            <?php if (strtolower($tampil_status) == 'lunas') : ?>
-                                                <span class="badge bg-success rounded-pill px-3 py-2">Lunas</span>
-                                            <?php else : ?>
-                                                <span class="badge bg-warning text-dark rounded-pill px-3 py-2">Belum Lunas</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td class="text-center">
-                                            <?php if (strtolower($tampil_status) != 'lunas') : ?>
-                                                <a href="admin_dashboard.php?aksi=set_lunas&id=<?= $row['id']; ?>" 
-                                                   onclick="return confirm('Apakah Anda yakin ingin menyetujui transaksi ini menjadi LUNAS?')" 
-                                                   class="btn btn-sm btn-success fw-bold px-3">
-                                                    ✓ Set Lunas
-                                                </a>
-                                            <?php else : ?>
-                                                <span class="text-muted small">Selesai ✓</span>
-                                            <?php endif; ?>
-                                        </td>
-                                    </tr>
-                                <?php endwhile; ?>
-                            <?php else : ?>
+                            <?php if ($result_pesanan && mysqli_num_rows($result_pesanan) > 0): ?>
+                                <?php $no = 1; while ($row = mysqli_fetch_assoc($result_pesanan)): ?>
                                 <tr>
-                                    <td colspan="9" class="text-center py-4 text-muted">Belum ada transaksi masuk dari user.</td>
+                                    <td><?= $no++; ?></td>
+                                    <td><?= date('d M Y', strtotime($row['tanggal'] ?? 'now')); ?></td>
+                                    <td><span class="badge bg-light text-dark border"><?= htmlspecialchars($row['username'] ?? '-'); ?></span></td>
+                                    <td><strong><?= htmlspecialchars($row['nama_alat'] ?? $row['alat'] ?? '-'); ?></strong></td>
+                                    <td><?= (int)($row['durasi'] ?? 0); ?> Hari</td>
+                                    <td class="text-success fw-bold">Rp <?= number_format((float)($row['total_bayar'] ?? $row['total'] ?? 0), 0, ',', '.'); ?></td>
+                                    <td><small><?= htmlspecialchars($row['metode_bayar'] ?? $row['metode'] ?? '-'); ?></small></td>
+                                    <td>
+                                        <?php if (strtolower($row['status'] ?? '') === 'lunas'): ?>
+                                            <span class="badge bg-success rounded-pill px-3">Lunas</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-warning text-dark rounded-pill px-3">Belum Lunas</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if (strtolower($row['status'] ?? '') !== 'lunas'): ?>
+                                            <a href="admin_dashboard.php?aksi=set_lunas&id=<?= (int)$row['id']; ?>"
+                                               onclick="return confirm('Set transaksi ini menjadi LUNAS?')"
+                                               class="btn btn-sm btn-success fw-bold">✓ Set Lunas</a>
+                                        <?php else: ?>
+                                            <span class="text-muted small">Selesai ✓</span>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <tr><td colspan="9" class="text-center py-4 text-muted">Belum ada transaksi.</td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
@@ -176,84 +153,67 @@ $tab_aktif = $_GET['tab'] ?? 'transaksi';
             </div>
         </div>
 
-        <!-- ========================================================================= -->
-        <!-- TEMPAT 2: TAB TAMBAH ALAT BARU & KATALOG -->
-        <!-- ========================================================================= -->
-        <div class="tab-pane fade <?= $tab_aktif == 'tambah-alat' ? 'show active' : ''; ?>" id="tambah-alat-content" role="tabpanel">
+        <!-- TAB TAMBAH ALAT -->
+        <div class="tab-pane fade <?= $tab_aktif === 'tambah-alat' ? 'show active' : ''; ?>" id="tambah-alat-content">
             <div class="row">
-                <!-- Form Tambah Alat (Kiri) -->
                 <div class="col-lg-5 mb-4">
                     <div class="card card-custom p-4">
                         <h5 class="fw-bold mb-3 text-success">Form Tambah Alat</h5>
                         <form action="admin_dashboard.php" method="POST">
                             <input type="hidden" name="tambah_alat" value="1">
-                            
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Nama Alat</label>
                                 <input type="text" name="nama_alat" class="form-control" placeholder="Contoh: Combine Harvester" required>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Harga Sewa / Hari (Rp)</label>
-                                <input type="number" name="harga" class="form-control" placeholder="Contoh: 150000" required>
+                                <input type="number" name="harga" class="form-control" placeholder="150000" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label fw-semibold">Jumlah Stok</label>
-                                <input type="number" name="stok" class="form-control" placeholder="Contoh: 5" required>
+                                <label class="form-label fw-semibold">Stok</label>
+                                <input type="number" name="stok" class="form-control" placeholder="5" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label fw-semibold">URL Link Gambar</label>
-                                <!-- Admin memasukkan alamat link gambar dari internet disini -->
-                                <input type="text" name="gambar" class="form-control" placeholder="Paste link gambar disini (https://...)" required>
+                                <label class="form-label fw-semibold">URL Gambar</label>
+                                <input type="text" name="gambar" class="form-control" placeholder="https://..." required>
                             </div>
-                            
                             <div class="mb-3">
-                                <label class="form-label fw-semibold">Deskripsi / Spesifikasi Alat</label>
-                                <textarea name="deskripsi" class="form-control" rows="4" placeholder="Masukkan keunggulan atau spesifikasi teknis alat..." required></textarea>
+                                <label class="form-label fw-semibold">Deskripsi</label>
+                                <textarea name="deskripsi" class="form-control" rows="3" required></textarea>
                             </div>
-                            
                             <div class="d-grid">
-                                <button type="submit" class="btn btn-success fw-bold py-2">Simpan ke Katalog</button>
+                                <button type="submit" class="btn btn-success fw-bold">Simpan ke Katalog</button>
                             </div>
                         </form>
                     </div>
                 </div>
-
-                <!-- Tabel Katalog Mengambil Gambar Otomatis dari Link URL (Kanan) -->
                 <div class="col-lg-7 mb-4">
                     <div class="card card-custom p-4">
-                        <h5 class="fw-bold mb-3">Daftar Katalog Alat Pertanian</h5>
+                        <h5 class="fw-bold mb-3">Daftar Katalog</h5>
                         <div class="table-responsive">
                             <table class="table table-hover align-middle">
                                 <thead class="table-light">
-                                    <tr>
-                                        <th>No</th>
-                                        <th style="width: 130px;">Gambar Alat</th> 
-                                        <th>Nama & Deskripsi</th>
-                                        <th>Harga</th>
-                                        <th>Stok</th>
-                                    </tr>
+                                    <tr><th>No</th><th>Gambar</th><th>Nama & Deskripsi</th><th>Harga</th><th>Stok</th></tr>
                                 </thead>
                                 <tbody>
-                                    <?php if (mysqli_num_rows($result_alat) > 0) : ?>
-                                        <?php $no = 1; while($row = mysqli_fetch_assoc($result_alat)) : 
-                                            $url_gambar = htmlspecialchars($row['gambar']);
+                                    <?php if ($result_alat && mysqli_num_rows($result_alat) > 0): ?>
+                                        <?php $no = 1; while ($row = mysqli_fetch_assoc($result_alat)):
+                                            $g = $row['gambar'];
+                                            $src = filter_var($g, FILTER_VALIDATE_URL) ? htmlspecialchars($g) : '../img/' . htmlspecialchars($g);
                                         ?>
-                                            <tr>
-                                                <td><?= $no++; ?></td>
-                                                <td>
-                                                    <!-- KUNCI UTAMA: Tag IMG langsung memanggil isi link URL dari database -->
-                                                    <img src="<?= $url_gambar; ?>" class="img-preview-katalog" onerror="this.src='https://placehold.co/110x80?text=Link+Rusak'">
-                                                </td>
-                                                <td>
-                                                    <strong><?= htmlspecialchars($row['nama_alat']); ?></strong><br>
-                                                    <small class="text-muted d-block text-wrap" style="max-width: 220px; font-size: 13px;">
-                                                        <?= htmlspecialchars($row['deskripsi'] ?? 'Tidak ada deskripsi.'); ?>
-                                                    </small>
-                                                </td>
-                                                <td class="text-success fw-bold">Rp <?= number_format($row['harga'], 0, ',', '.'); ?></td>
-                                                <td><span class="badge bg-info"><?= $row['stok']; ?> unit</span></td>
-                                            </tr>
+                                        <tr>
+                                            <td><?= $no++; ?></td>
+                                            <td><img src="<?= $src; ?>" class="img-preview-katalog" onerror="this.src='https://placehold.co/110x80?text=No+Img'"></td>
+                                            <td>
+                                                <strong><?= htmlspecialchars($row['nama_alat']); ?></strong><br>
+                                                <small class="text-muted"><?= htmlspecialchars(substr($row['deskripsi'] ?? '', 0, 80)); ?>...</small>
+                                            </td>
+                                            <td class="text-success fw-bold">Rp <?= number_format($row['harga'], 0, ',', '.'); ?></td>
+                                            <td><span class="badge bg-info"><?= (int)$row['stok']; ?> unit</span></td>
+                                        </tr>
                                         <?php endwhile; ?>
+                                    <?php else: ?>
+                                        <tr><td colspan="5" class="text-center text-muted">Belum ada alat.</td></tr>
                                     <?php endif; ?>
                                 </tbody>
                             </table>
@@ -262,7 +222,6 @@ $tab_aktif = $_GET['tab'] ?? 'transaksi';
                 </div>
             </div>
         </div>
-
     </div>
 </div>
 
