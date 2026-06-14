@@ -133,7 +133,7 @@ $query_tampil = mysqli_query($koneksi, "SELECT * FROM alat");
             <div class="col-md-12"><input type="file" name="gambar" class="form-control" required></div>
             <div class="col-12">
                 <button type="submit" name="tambah" class="btn btn-primary fw-bold">Tambah Alat</button>
-                <a href="../admin_dashboard.php" class="btn btn-outline-secondary">Kembali ke Dashboard</a>
+                <a href="admin_dashboard.php" class="btn btn-outline-secondary">← Kembali ke Dashboard</a>
             </div>
         </form>
     <?php endif; ?>

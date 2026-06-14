@@ -52,7 +52,7 @@ $metode = $_GET['metode'] ?? '-';
             <a href="dashboard_user.php" class="btn btn-success py-2 fw-bold" style="border-radius: 12px;">
                 Lihat Status Peminjaman
             </a>
-            <a href="api/daftar_alat.php" class="btn btn-outline-success py-2 fw-bold" style="border-radius: 12px;">
+            <a href="daftar_alat.php" class="btn btn-outline-success py-2 fw-bold" style="border-radius: 12px;">
                 Kembali ke Katalog
             </a>
         </div>

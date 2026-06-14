@@ -53,7 +53,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['proses_konfirmasi']))
         mysqli_stmt_bind_param($stmt_stok, 'i', $id_alat);
         mysqli_stmt_execute($stmt_stok);
 
-        echo "<script>alert('Pemesanan Berhasil! Menunggu konfirmasi admin.'); window.location.href='riwayat_pemesanan.php';</script>";
+        $url = "sukses.php?alat=" . urlencode($nama_alat_final) . "&durasi=" . $durasi_final . "&total=" . $total_final . "&metode=" . urlencode($metode_final);
+        header("Location: $url");
+        exit();
         exit();
     } else {
         $err = mysqli_error($koneksi);
