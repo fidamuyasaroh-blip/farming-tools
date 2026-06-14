@@ -13,11 +13,9 @@ if (!$username) {
 }
 
 // PERBAIKAN UTAMA: Menangkap data menggunakan $_POST dari form pinjam.php
-// Jika user mengakses langsung tanpa post, kita buat fallback ke 0 / 1
 $id_alat = isset($_POST['id']) ? $_POST['id'] : (isset($_GET['id']) ? $_GET['id'] : 0);
 $durasi  = isset($_POST['hari']) ? $_POST['hari'] : (isset($_POST['lama_sewa']) ? $_POST['lama_sewa'] : 1);
 
-// Jika di form pinjam.php kamu nama input text durasinya adalah 'hari' (bisa dicek dari name="...")
 if(isset($_POST['hari'])) {
     $durasi = $_POST['hari'];
 }
@@ -27,7 +25,6 @@ $query = mysqli_query($koneksi, "SELECT * FROM alat WHERE id = '$id_alat'");
 $data  = mysqli_fetch_assoc($query);
 
 if (!$data) {
-    // Jika data alat tidak ditemukan, kembalikan ke katalog
     header("Location: daftar_alat.php");
     exit();
 }
@@ -35,6 +32,9 @@ if (!$data) {
 $alat = $data['nama_alat'];
 $harga_per_hari = $data['harga'];
 $total_bayar = $durasi * $harga_per_hari;
+
+// Deteksi otomatis folder path untuk action form (Aman untuk local & Vercel)
+$action_path = (strpos($_SERVER['REQUEST_URI'], '/api/') !== false) ? 'simpan_pinjam.php' : 'Proses/simpan_pinjam.php';
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -68,7 +68,7 @@ $total_bayar = $durasi * $harga_per_hari;
             </div>
         </div>
 
-        <form action="Proses/simpan_pinjam.php" method="POST">
+        <form action="<?= $action_path; ?>" method="POST">
             
             <input type="hidden" name="id_alat" value="<?= $id_alat; ?>">
             <input type="hidden" name="nama_alat" value="<?= htmlspecialchars($alat); ?>"> 
@@ -89,7 +89,7 @@ $total_bayar = $durasi * $harga_per_hari;
             </label>
 
             <label class="w-100 mb-2">
-                <input type="radio" name="metode" value="Transfer Mandiri" required checked>
+                <input type="radio" name="metode" value="Transfer Mandiri" required>
                 <div class="method-box">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/a/ad/Bank_Mandiri_logo_2016.svg" width="60" class="me-3">
                     <div>
@@ -100,7 +100,7 @@ $total_bayar = $durasi * $harga_per_hari;
             </label>
 
             <label class="w-100 mb-3">
-                <input type="radio" name="metode" value="Gopay" required checked>
+                <input type="radio" name="metode" value="Gopay" required>
                 <div class="method-box">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/8/86/Gopay_logo.svg" width="60" class="me-3">
                     <div>
