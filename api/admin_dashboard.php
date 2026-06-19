@@ -52,6 +52,9 @@ $result_pesanan = mysqli_query($koneksi, "SELECT * FROM peminjaman ORDER BY id D
             <a href="kelola_user.php" class="nav-link text-white">Kelola User</a>
         </li>
         <li class="nav-item mb-2">
+            <a href="laporan.php" class="nav-link text-white">📊 Laporan</a>
+        </li>
+        <li class="nav-item mb-2">
             <a href="daftar_alat.php" class="nav-link text-white">Lihat Katalog</a>
         </li>
         <li class="nav-item mb-2">
@@ -68,9 +71,14 @@ $result_pesanan = mysqli_query($koneksi, "SELECT * FROM peminjaman ORDER BY id D
             <h2 class="fw-bold text-dark">Dashboard Panel Admin</h2>
             <p class="text-muted mb-0">Kelola transaksi penyewaan alat pertanian.</p>
         </div>
-        <a href="kelola_alat.php" class="btn btn-success fw-bold px-4">
-            ➕ Tambah / Kelola Alat
-        </a>
+        <div class="d-flex gap-2">
+            <a href="laporan.php" class="btn btn-outline-dark fw-bold px-4">
+                📊 Laporan & Grafik
+            </a>
+            <a href="kelola_alat.php" class="btn btn-success fw-bold px-4">
+                ➕ Tambah / Kelola Alat
+            </a>
+        </div>
     </div>
 
     <div class="card card-custom p-4">
